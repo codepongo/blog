@@ -93,7 +93,7 @@ l_about_me = '关于我'
 l_what_is_my_name = '我的姓名(全拼)'
 
 # version
-version = '15b3TA'+'(addon by codepongo)'
+version = '15b3TA'
 
 # for date collisions
 dates = {} #dates[datetime] = filename
@@ -665,7 +665,7 @@ class Entries:
 
 def renderHtmlFooter():
     print "<div id=\"footer\">"
-    print 'Powered by <a href="https://utocode.googlecode.com/svn/trunk/codepongo" target="_blank">Codepongo</a> (Base on <a href="http://23.fi/kukkaisvoima">Kukkaisvoima</a> version %s' % version
+    print 'Powered by <a href="https://utocode.googlecode.com/svn/trunk/codepongo" target="_blank">Codepongo</a> (Base on <a href="http://23.fi/kukkaisvoima">Kukkaisvoima</a> version %s)' % version
     print "<br />"
     print "Hosting by <a href=\"http://bu3w.net\">Mencius</a>"
     print "</div>"

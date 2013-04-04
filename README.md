@@ -19,4 +19,7 @@ codepongo/blog
 		
 		Base on [pyftpdlib](http://code.google.com/p/pyftpdlib/)
 
+* bug
+location: url is invalid.
+
 
