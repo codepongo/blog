@@ -1,4 +1,22 @@
 blog
 ====
 
-the power of codepongo.com Base on Kukkaisvoima version 15b3TA.
+
+
+codepongo/blog
+
+* include
+	
+	+ blog.py - Light weight blog system
+
+		Base on [Kukkaisvoima](http://23.fi/kukkaisvoima) version 15b3TA.
+		
+		[kukkaissvoima in github](https://github.com/Petteri/kukkaisvoima)
+
+	+ cgiserver.py - a python http cgi server
+
+	+ pyftp.py - a ftp server
+		
+		Base on [pyftpdlib](http://code.google.com/p/pyftpdlib/)
+
+

@@ -1,0 +1,132 @@
+/* This file is part of Kukkaisvoima. It is meant to be example css
+for Kukkaisvoima nothing more. This is config file. Kukkaisvoima's
+license don't affect this file. So you may freely modify this as you
+like */
+
+body {
+    margin: 0;
+	padding: 0;
+	color: #383d44;
+}
+
+#content1 {
+    font-family: Verdana, sans-serif;
+	font-size: small;
+	background: #f3f1e9;
+    margin: auto;
+	width: 90em;
+}
+
+#content2 {
+	float: left;
+	width: 65em;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	padding: 20px;
+}
+
+#content3 {
+	margin-top: 10px;
+	margin-bottom: 10px;
+    padding:20px;
+	line-height: 120%
+}
+
+#sidebar {
+    float: right;
+	width: 230px;
+	padding-top: 40px;
+	font-size: 1.2em;
+	line-height: 1.25;
+}
+
+#sidebar li {
+    list-style-type: square;
+    margin-left: -1em;
+}
+
+#header {
+    padding-left:5em;
+    background: #31363e;
+    background-image:url(/banner.jpg);
+    background-repeat:no-repeat;
+    color: #693;
+	height:119px;
+}
+
+#menu {
+	text-align:right;
+	padding-right:10px;
+    color: #693;
+	height:1.5em;
+	font-size:2em;
+    background: #31363e;
+}
+
+a:link,
+a:visited {
+    color: #326ea1;
+    text-decoration: none;
+    border-bottom: 1px dashed #dbd5c5;
+}
+
+h1 a:link,
+h1 a:visited {
+    color: #693;
+    border-bottom: none;
+}
+
+h2 {
+    color: #693;
+}
+
+h2 a:link,
+h2 a:visited {
+    color: #693;
+}
+
+h3 {
+    color: #7ABCFF;
+}
+
+a:hover {
+    border-bottom: 1px dotted #7E8C81;
+    color: #BFA78D;
+}
+
+p {
+    text-align: left;
+}
+
+li {
+    text-align: left;
+    margin: .5em;
+}
+
+img {
+    border: none;
+}
+
+#footer {
+    padding: 2em;
+	background: #31363e;
+    color: #693;
+    clear:both;
+}
+pre {
+    padding: 1em;
+    border: 1px solid gray;
+}
+
+#hit {
+    display: inline;
+    text-decoration: none;
+	background:#693;
+}
+
+h1,
+h2,
+div {
+	padding:0;
+	margin:0;
+}
