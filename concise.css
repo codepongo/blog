@@ -113,3 +113,20 @@ div {
 	padding:0;
 	margin:0;
 }
+
+blockquote {
+  background: transparent url('http://www.itb.me/kukkaisvoima-9/img/open_quote.png') no-repeat top left;
+  background-color: white;
+  border-top: 0px dotted #555;
+  border-bottom: 0px dotted #555;
+  margin-left: 2em;
+  margin-right: 250px;
+  padding-left: 1.8em;
+  padding-right: .5em;
+  padding-top: 0.1em;
+  padding-bottom: 0.5em;
+  color: grey;
+  font-family:"Times New Roman",Times,serif;
+  font-style:italic;
+  font-size: large;
+}
