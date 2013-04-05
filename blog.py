@@ -665,7 +665,7 @@ class Entries:
 
 def renderHtmlFooter():
     print "<div id=\"footer\">"
-    print 'Powered by <a href="https://utocode.googlecode.com/svn/trunk/codepongo" target="_blank">Codepongo</a> (Base on <a href="http://23.fi/kukkaisvoima">Kukkaisvoima</a> version %s)' % version
+    print 'Powered by <a href="https://github.com/codepongo/blog" target="_blank">Codepongo</a> (Base on <a href="http://23.fi/kukkaisvoima">Kukkaisvoima</a> version %s)' % version
     print "<br />"
     print "Hosting by <a href=\"http://bu3w.net\">Mencius</a>"
     print "</div>"
