@@ -790,17 +790,7 @@ def renderHtmlHeader(title=None, links=[]):
            l_email_must_be_filled_in_and_must_be_valid,
            l_wrong_answer,
            l_comment_cannot_be_empty)
-    print """\
-<script>
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-39694782-1', 'codepongo.com');
-  ga('send', 'pageview');
-</script>"""
-
+    print google_analytics_script
     print "</head>"
     print "<body>"
     print "<div id=\"content1\">"
