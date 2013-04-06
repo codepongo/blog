@@ -58,3 +58,6 @@ google_analytics_script = """\
   ga('send', 'pageview');
 </script>"""
 
+#google adsense
+google_adsense_script = """"""
+

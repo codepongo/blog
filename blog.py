@@ -1001,6 +1001,11 @@ def renderDeleteComments(entry, commentnum):
     renderHtmlFooter()
     return
 
+def renderGoogleAdSense():
+    print "<br />"
+    print google_adsense_script
+    print "<br />"
+
 def renderSidebarAlipay():
     print "<br />"
     print "<a href='http://me.alipay.com/codepongo'><img src='https://img.alipay.com/sys/personalprod/style/mc/btn-index.png' /></a>"
@@ -1240,6 +1245,7 @@ def renderHtml(entries, path, catelist, arclist, admin, page):
     renderSidebarArchive(arclist)
     renderSidebarAdmin(entries)
     renderSidebarAlipay()
+    renderGoogleAdSense()
 
     print "</div>" # sidebar
 
