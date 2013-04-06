@@ -91,6 +91,8 @@ l_home = '主页'
 l_application = '应用'
 l_about_me = '关于我'
 l_what_is_my_name = '我的姓名(全拼)'
+l_donate = '捐赠'
+l_advert = '广告'
 
 # version
 version = '15b3TA'
@@ -1001,13 +1003,14 @@ def renderDeleteComments(entry, commentnum):
     renderHtmlFooter()
     return
 
-def renderGoogleAdSense():
+def renderAdvert():
+    print "<h2>%s</h2>" % l_advert
     print "<br />"
     print google_adsense_script
     print "<br />"
 
-def renderSidebarAlipay():
-    print "<br />"
+def renderSidebarDonate():
+    print "<h2>%s</h2>" % l_donate
     print "<a href='http://me.alipay.com/codepongo'><img src='https://img.alipay.com/sys/personalprod/style/mc/btn-index.png' /></a>"
     print "<br />"
 def renderSidebarCategories(catelist, rss_categories):
@@ -1244,8 +1247,8 @@ def renderHtml(entries, path, catelist, arclist, admin, page):
     renderSidebarCommments()
     renderSidebarArchive(arclist)
     renderSidebarAdmin(entries)
-    renderSidebarAlipay()
-    renderGoogleAdSense()
+    renderSidebarDonate()
+    renderAdvert()
 
     print "</div>" # sidebar
 
