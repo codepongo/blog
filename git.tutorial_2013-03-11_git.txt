@@ -1,0 +1,144 @@
+<h1>GIT Tutorial GIT指南</h1>
+
+<ul>
+<li><p>Repository Configure 库配置</p>
+
+<ul>
+<li>git init --bare <em>name</em>.git
+initial an empty git repository 初始化一个空git库</li>
+</ul></li>
+<li><p>Local Setting 本地配置</p>
+
+<ul>
+<li><p>git config user.name <em>name</em>
+设置用户名 set user name </p></li>
+<li><p>git config user.email <em>email</em>
+设置email地址 set user email </p></li>
+</ul></li>
+<li><p>Status 状态查询</p>
+
+<ul>
+<li><p>git log --oneline --graph
+显示日志
+show log</p></li>
+<li><p>git status -s
+显示工作区状态
+show work box status </p></li>
+</ul></li>
+<li><p>Box - Stage 工作区和暂存区</p>
+
+<ul>
+<li><p>git add -A
+加入所有修改至缓存区
+add file new file, removing file and motified content to stage </p></li>
+<li><p>git add -u
+加入修改内容至缓存区
+update motified content to stage </p></li>
+<li><p>git rm <em>file</em>
+移除文件
+remove file from work box and stage </p>
+
+<ul>
+<li>git diff
+比较工作区和暂存区
+compare stage with HEAD(local Repository) </li>
+</ul></li>
+<li><p>git checkout -- <em>file</em>
+从缓存区恢复至工作区
+restore file in work box from stage </p></li>
+</ul></li>
+<li><p>Stage - Repository 暂存区和库</p>
+
+<ul>
+<li><p>git reset, git reset HEAD, git reset -- <em>file</em>
+用库重置暂存区
+restore stage from repository </p></li>
+<li><p>git diff --cached
+比较暂存区和库
+compare stage with HEAD(local Repository) </p></li>
+<li><p>git commit -m '<em>message</em>'
+提交缓存区至库
+commit stage to repository </p></li>
+</ul></li>
+<li><p>Box - Repository 工作区和库</p>
+
+<ul>
+<li>git diff HEAD
+比较工作区和库
+compare work box with HEAD(local Repository) </li>
+</ul></li>
+<li><p>Repository - Stage - Box</p>
+
+<ul>
+<li><p>git reset --hard HEAD
+用库恢复工作区和暂存区
+restore work box and stage from repository </p></li>
+<li><p>git checkout [<em>commit</em>] -- <em>file</em>
+检出至工作区和暂存区
+checkout  to work box and stage </p></li>
+</ul></li>
+<li><p>Repository </p>
+
+<ul>
+<li><p>git reset --soft HEAD^
+还原至上一版本
+revert to last version(HEAD^) </p></li>
+<li><p>git commit --amend -m 'new comment'
+modify log 修改版本日志</p></li>
+</ul></li>
+<li><p>Local Repository - Remote Repository 本地库和远程库</p>
+
+<ul>
+<li><p>git clone file://<em>path.name.git</em>
+克隆git库
+clone git repository</p></li>
+<li><p>git push
+更新远程库
+update remote repository </p></li>
+<li><p>git pull
+获取远程库，合并到本地
+fetch and merge remote to local </p></li>
+</ul></li>
+<li><p>With <strong>S</strong>ub<strong>V</strong>ersio<strong>N</strong></p></li>
+</ul>
+
+<pre>   
+svnadmin create     git init --bare
+svn checkout        git clone
+svn update          git pull
+svn revert          git reset git checkout --
+                    git [commit] checkout --
+svn add             git add
+svn rm              git rm
+svn mv              git mv
+svn diff            git diff 
+                        git diff --cached
+                    git diff HEAD
+svn status          git status -s
+svn commit -m ''    git commit -m '';git push
+svn log             git log 
+</pre>
+
+<ul>
+<li><p>保存当前工作进度</p>
+
+<ul>
+<li><p>git stash
+save work box to the stash
+保存进度</p></li>
+<li><p>git stash list
+显示进度列表
+list stash</p></li>
+<li><p>git stash apply
+恢复进度
+apply a single stashed state on the top of work box</p></li>
+<li><p>git stash pop
+从进度列表移动某个缓存覆盖工作区
+remove a single stashed state and apply it on the top of work box</p></li>
+<li><p>git stash clear
+删除所有存储的进度
+clean the stash</p></li>
+</ul></li>
+</ul>
+
+#html

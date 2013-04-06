@@ -1,0 +1,52 @@
+<h1>Github Useful Help github帮助</h1>
+
+<ul>
+<li><p><a href="https://github.com/users">Register 注册</a></p></li>
+<li><p><a href="https://help.github.com/articles/creating-a-new-repository">Create repository 创建库</a> <br />
+<em>新建库</em>
+可以在任何有权限的账户上创建库，无论是个人或组织帐号</p>
+
+<ol>
+<li>在任意页面的右上角的用户条，点击“Create a New Repo"按钮</li>
+<li>选择创建库的帐号</li>
+<li>输入库名字，选择库类型public公有或private私有；然后点击“Create repository”</li>
+</ol></li>
+<li><p><a href="https://help.github.com/articles/deleting-a-repository">Delete repository 删除库</a>
+<em>删除库</em></p>
+
+<ol>
+<li>切换至要删除的库</li>
+<li>选择库操作条上的“Settings”</li>
+<li>点击“Delete this repository”在Danger Zone 区域</li>
+<li>阅读警告，输入库名</li>
+<li>点击“I understand the consequences, delete this repository”</li>
+</ol></li>
+<li><p>Establish a secure connectio
+<a href="https://help.github.com/articles/generating-ssh-keys">SSH Keys</a>
+如果决定不使用推荐的HTTPS方法,也能用SSH keys去建立一个安全的终端到github的链接,
+下面的步骤将引导你产生一个SSH key然后加入公钥到github帐号</p>
+
+<ol>
+<li>检查SSH keys
+首先，我们需要检查一个存在的ssh keys在你的计算机。
+cd ~/.ssh
+如果没有文件或路路，那么进行第二步，否则密钥对已存在那么跳到第三步。</li>
+<li>产生新的SSH key
+产生新的SSH key
+ssh-keygen -t rsa -C "your_email@example.com"</li>
+<li>加入SSH key到GitHub
+拷贝公钥到剪切版 ~/.ssh/id_rsa.pub
+<ol>
+<li>进入账户设置“Account Settings”</li>
+<li>点击侧栏的“SSH Keys”</li>
+<li>点击“Add SSH key”</li>
+<li>黏贴公钥到“Key”区域</li>
+<li>点击“Add key”</li>
+<li>确认密码后，添加成功</li>
+</ol></li>
+<li>测试
+ssh -T git@github.com</li>
+</ol></li>
+</ul>
+
+#html
