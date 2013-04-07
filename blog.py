@@ -670,6 +670,8 @@ def renderHtmlFooter():
     print 'Powered by <a href="https://github.com/codepongo/blog" target="_blank">Codepongo</a> (Base on <a href="http://23.fi/kukkaisvoima">Kukkaisvoima</a> version %s)' % version
     print "<br />"
     print "Hosting by <a href=\"http://bu3w.net\">Mencius</a>"
+    print "<br />"
+    print "Proudly <b>NOT</b> powered by WordPress or Jekyll"
     print "</div>"
     print "</div>" # content1
     print "</body>"
