@@ -1,0 +1,61 @@
+<h1>zjdict 命令行字典</h1>
+
+<p><img src="/zjdict_icon.png" alt="alt=zjdict icon图标" /></p>
+
+<p><strong>a command line word dictionary</strong></p>
+
+<h1>Function 功能</h1>
+
+<ul>
+<li><p>green application 绿色软件 无需安装 解压即用</p></li>
+<li><p>new word file as text format 文本格式生词本</p></li>
+<li><p>command user interface 命令行交互</p></li>
+<li><p>local dictionary. 离线词典
+you can translate word by local <em>startdict</em> dictionary 
+本地使用星际译王词典</p></li>
+<li><p>translate on line. 在线翻译
+support baidu online translate and youdao online translate.
+支持百度词典，有道词典在线翻译</p></li>
+<li><p>mode 多模式
+translate mode 翻译模式
+search mode 查找模式</p></li>
+<li><p>matching 匹配方式
+regular expression 支持正则表达式</p></li>
+</ul>
+
+<h1>snapshot 截图</h1>
+
+<p><img src="/zjdict_run.png" alt="alt=run运行" />
+<img src="/zjdict_translate.png" alt="alt=translate翻译" />
+<img src="/zjdict_search.png" alt="alt=search 查找" />
+<img src="/zjdict_search_mode.png" alt="alt=search mode查找模式" /></p>
+
+<h1>command 命令</h1>
+
+<ul>
+<li><p><strong>,save</strong> save to 'new word' file保存至生词本</p></li>
+<li><p><strong>,search &lt;regular&gt;</strong> 查找</p></li>
+<li><p><strong>,search</strong> search mode 查找模式</p></li>
+<li><p><strong>,quit</strong> or <strong>,exit</strong> exit 退出</p></li>
+</ul>
+
+<h1>develop 开发</h1>
+
+<ul>
+<li><p>source code 源代码</p>
+
+<ul>
+<li><a href="http://github.com/codepongo/zjdict">@github</a> the newest</li>
+<li><a href="http://utocode.googlecode.com/svn/trunk/zjdict/">@googlecode</a> mirror</li>
+</ul></li>
+<li><p>third party library 第三方库</p>
+
+<ul>
+<li>pystardict 
+<a href="http://sourceforge.net/projects/pystardict">@sourceforge</a>
+<a href="https://github.com/lig/pystardict">@github</a></li>
+<li>getch</li>
+</ul></li>
+</ul>
+
+#html
