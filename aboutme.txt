@@ -1,0 +1,23 @@
+<blockquote>
+<image src="/head.png" alt="head" /><b>zuohaitao</b><br />
+1982.12.02 male, beijing.<br />
+a software programer.<br/>
+coding is not only work,but also is my favorite.<br />
+i like animals whatever alive or dead.<br/>
+interset:cookie,swim,rock music,read,movie,paint...<br />
+IM:<image src="/qq.png" alt="qq" /><br />
+email:<image src="/email.png" alt="email" /><br />
+<br />
+<a href="http://www.douban.com/people/zhuhuotui/" target="_blank">
+	<image src="http://www.douban.com/favicon.ico" alt="douban ico" width="16" height="16" />
+</a>
+<a href="http://bbs.chinaunix.net/space-uid-20730965.html" target="_blank">
+	<image src="http://www.chinaunix.net/favicon.ico" alt="chinaunix ico" width="16" height="16" />
+</a>
+<a href="http://code.google.com/p/utocode/" target="_blank">
+	<image src="https://ssl.gstatic.com/codesite/ph/images/defaultlogo.png" alt="googlecode ico" width="16" height="16" />
+</a>
+<a href="https://github.com/codepongo" target="_blank">
+	<image src="https://github.com/favicon.ico" alt="github ico" width="16" height="16" />
+</a>
+</blockquote>
