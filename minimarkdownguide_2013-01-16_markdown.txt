@@ -147,8 +147,6 @@ $(linesep)
 
 <p>this is two pargraph</p>
 
-<h1>sample</h1>
-
 <h1>Section Six</h1>
 
 <p>An image is shown in this section.</p>
