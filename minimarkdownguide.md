@@ -144,7 +144,6 @@ this is one pargraph
 this is two pargraph
 
 
-# sample #
 # Section Six #
 An image is shown in this section.
 
