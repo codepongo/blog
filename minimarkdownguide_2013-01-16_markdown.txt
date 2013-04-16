@@ -82,7 +82,24 @@ This is an Sub Title
 <h1>image</h1>
 
 <p>![alt=markdown.jpg](markdown.jpg)
- <img src="/markdown.jpg" alt="alt=markdown.jpg" /></p>
+ <img src="markdown.jpg" alt="alt=markdown.jpg" /></p>
+
+<h1>paragraph</h1>
+
+<pre><code>$(linesep)
+this is one pargraph
+$(linesep)
+$(linesep)
+this is two pargraph
+$(linesep)
+$(linesep)
+...
+$(linesep)
+</code></pre>
+
+<p>this is one pargraph</p>
+
+<p>this is two pargraph</p>
 
 <h1>sample</h1>
 
@@ -124,9 +141,17 @@ This is an Sub Title
 
 <h1>Section Five</h1>
 
+<p>there are two pargraphs in this section</p>
+
+<p>this is one pargraph</p>
+
+<p>this is two pargraph</p>
+
+<h1>Section Six</h1>
+
 <p>An image is shown in this section.</p>
 
-<p><img src="/markdown.jpg" alt="alt=markdown.jpg" /></p>
+<p><img src="markdown.jpg" alt="alt=markdown.jpg" /></p>
 
 <p><a href="markdown.tw">Markdown zh_tw</a></p>
 

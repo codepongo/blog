@@ -72,6 +72,27 @@ as:
 \!\[alt=markdown.jpg\](markdown.jpg)
  ![alt=markdown.jpg](markdown.jpg)
 
+# paragraph #
+
+
+	$(linesep)
+	this is one pargraph
+	$(linesep)
+	$(linesep)
+	this is two pargraph
+	$(linesep)
+	$(linesep)
+	...
+	$(linesep)
+
+
+
+this is one pargraph
+
+
+this is two pargraph
+
+
 # sample #
 
 ------------------------------------------------------------------------------
@@ -113,6 +134,17 @@ long long sentence in this section.
 
 # Section Five #
 
+
+there are two pargraphs in this section
+
+
+this is one pargraph
+
+
+this is two pargraph
+
+
+# Section Six #
 An image is shown in this section.
 
 ![alt=markdown.jpg](markdown.jpg)
