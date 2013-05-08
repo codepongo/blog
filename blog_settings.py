@@ -60,4 +60,6 @@ google_analytics_script = """\
 
 #google adsense
 google_adsense_script = """"""
+# Number of visible categories in sidebar
+numberofvisiblecategories = 50
 

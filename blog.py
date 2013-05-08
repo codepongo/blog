@@ -1032,11 +1032,11 @@ def renderSidebarCategories(catelist, rss_categories):
 
     hide_cat_str = ""
     topcategories = list()
-    if len(categories) > 5:
+    if len(categories) > numberofvisiblecategories:
         print "<a href=\"#\" onclick=\"toggle_categories('tcategory'); return false;\">%s</a>" % (l_show_more_categories)
         topcategories = categories[:]
         topcategories.sort(key=lambda cat: len(catelist[cat]), reverse=True)
-        topcategories = topcategories[:5]
+        topcategories = topcategories[:numberofvisiblecategories]
         for cat in rss_categories:
             if cat not in topcategories:
                 topcategories.append(cat)
