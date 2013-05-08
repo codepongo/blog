@@ -62,4 +62,6 @@ google_analytics_script = """\
 google_adsense_script = """"""
 # Number of visible categories in sidebar
 numberofvisiblecategories = 50
+# the password of resume
+resume_password = 'zuohaitao'
 

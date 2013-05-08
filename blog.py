@@ -90,7 +90,7 @@ l_show_more_categories = '更多标签'
 l_home = '主页'
 l_application = '应用'
 l_about_me = '关于我'
-l_what_is_my_name = '我的姓名(全拼)'
+l_what_is_my_name = '我的手机号'
 l_donate = '捐赠'
 l_advert = '广告'
 
@@ -1578,7 +1578,7 @@ def main():
         else:
             fs = cgi.FieldStorage(keep_blank_values=1)
             password = fs.getvalue('password')
-            if password == 'zuohaitao':
+            if password == resume_password:
                 return renderResume()
             else:
                 return renderResumeCheck()
