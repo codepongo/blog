@@ -1141,6 +1141,7 @@ def renderHtml(entries, path, catelist, arclist, admin, page):
     summary = False
     if len(entries) == 1:
         title = entries[0].headline
+        title = title.replace('<h1>','').replace('</h1>','')
     elif len(categories) == 1:
         title = categories[0]
 
