@@ -37,3 +37,6 @@ nosetests.xml
 #vi temp file
 *~
 *.swp
+
+#for mac
+.DS_Store

@@ -1,0 +1,31 @@
+<h1>Function Pointers To Malloc And Free</h1>
+
+<p>Recently, I read the source of sqlite, cJSON and expat.
+There is a structure in these source.
+It looks like:</p>
+
+<pre>
+typdef struct {
+    void* (*mallocFn)(size_t s)
+void ( * freenFn)(void * p)
+} Mem;
+</pre>
+
+<p>The structure has two function pointer members.
+The one'type is the malloc function.The Other'type is the free function.</p>
+
+<p>In the source, there is a function interface for set the function pointer.</p>
+
+<p>When the program needs alloc and free memory, it calls the functions to be pointed
+by the two members of the structure. </p>
+
+<p>In my opinion, there are three advantages:</p>
+
+<ul>
+<li><p>Check memory leak.To implement the malloc and free functions with mark a 
+record.When the program is end, check the records to find out memory leak.(I often use it)</p></li>
+<li><p>Improve the performance.To implement the memory pool myself.(I never use it)</p></li>
+<li><p>Out-Of-Memory testing.(this advantage is found in sqlite document)</p></li>
+</ul>
+
+#html
