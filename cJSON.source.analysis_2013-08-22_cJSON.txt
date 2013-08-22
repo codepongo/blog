@@ -1,0 +1,155 @@
+<h1>cJSON source analysis</h1>
+
+<h2>Introduction</h2>
+
+<p>cJSON paser with a single file of C, and a single header file.like description 
+of README, the library can take away as much legwork and is the dumbest possible
+parser.</p>
+
+<p>homepage:<a href="http://sourceforge.net/projects/cjson/?source=directory">http://sourceforge.net/projects/cjson/?source=directory</a></p>
+
+<p>mirror:<a href="https://github.com/openxc/cJSON">https://github.com/openxc/cJSON</a></p>
+
+<p>license:<strong>MIT</strong></p>
+
+<p>the function of the cJSON library is that the string formatted json(JSON data) and 
+the json structure(cJSON object) convert to each other.</p>
+
+<h2>Notice</h2>
+
+<ul>
+<li><strong>no</strong> safe with multi-threads</li>
+<li>when cJSON_Parse() and cJSON_CreateXXX() functions are finished, call cJSON_Delete to free.</li>
+<li>when cJSON_PrintXXX() functions are finished, call Hooks::free_fn to free.</li>
+<li>strdup() needs free.</li>
+</ul>
+
+<h2>Structure</h2>
+
+<p>In README, the author introducts two way to use the libaray.one is AUTO mode and
+the other is MANUAL mode.
+There is a structure introduction in the manual mode part.</p>
+
+<blockquote>
+Here's the structure:
+typedef struct cJSON {
+    struct cJSON *next,*prev;
+    struct cJSON *child;
+
+    int type;
+
+    char *valuestring;
+    int valueint;
+    double valuedouble;
+
+    char *string;
+} cJSON;
+
+By default all values are 0 unless set by virtue of being meaningful.
+
+next/prev is a doubly linked list of siblings. next takes you to your sibling,
+prev takes you back from your sibling to you.
+Only objects and arrays have a "child", and it's the head of the doubly linked list.
+A "child" entry will have prev==0, but next potentially points on. The last sibling has next=0.
+The type expresses Null/True/False/Number/String/Array/Object, all of which are #defined in
+cJSON.h
+
+A Number has valueint and valuedouble. If you're expecting an int, read valueint, if not read
+valuedouble.
+
+Any entry which is in the linked list which is the child of an object will have a "string"
+which is the "name" of the entry. When I said "name" in the above example, that's "string".
+"string" is the JSON name for the 'variable name' if you will.
+
+Now you can trivially walk the lists, recursively, and parse as you please.
+You can invoke cJSON\_Parse to get cJSON to parse for you, and then you can take
+the root object, and traverse the structure (which is, formally, an N-tree),
+and tokenise as you please. 
+</blockquote>
+
+<p>In fact, json structure is a tree, so cJSON struct is like the node of tree that
+has child node pointer and sibling pointers
+there are three type structure in json. those are object, number and string.
+the type member is as the type in json. the type member'value are False, True, 
+NULL, Number, String, Array and Object.
+the value is stored in the one of valuestring, valueint and valuedouble by the type.</p>
+
+<pre>
+ +------+          +-----+           +-----+
+ |cJSON |---prev---|cJSON| ---next---|cJSON|
+ +------+          +-----+           +-----+
+                      |
+                    child      
+                      |        +-----+          +-----+          +-----+
+                      +--------|cJSON|---prev---|cJSON|---next---|cJSON|
+                               +-----+          +-----+          +-----+
+</pre>
+
+<h2>Functions</h2>
+
+<p>print_xxxx functions are convert json to string
+parse_xxxx functions are convert string to json</p>
+
+<h3>convert functions</h3>
+
+<ul>
+<li>cJSON_strcasecmp() - strcmpcase()</li>
+<li>cJSON_strdup() - strdup()</li>
+<li>parse_number() - atoi() and atof() </li>
+<li>print_number() - itoa() and fto2()</li>
+<li>parse_string() - to a unescape string</li>
+<li>print_string() - to a unescape string</li>
+<li>print_string_ptr() - to a escape string</li>
+</ul>
+
+<h3>parse functions</h3>
+
+<ul>
+<li>skip() - trim invisible char such as whitespace cr lf</li>
+<li>parse_value() - parse json token</li>
+<li>print_value() - json to string</li>
+<li>parse_array() - parse json array token</li>
+<li>print_array() - json array to string</li>
+<li>parse_object() </li>
+</ul>
+
+<h3>all function</h3>
+
+<ul>
+<li>cJSON_strcasecmp() - strcmpcase()</li>
+<li>cJSON_strdup() - strdup()</li>
+<li>cJSON_InitHooks() - set malloc and free</li>
+<li>cJSON_New_Item() - structure</li>
+<li>cJSON_Delete()</li>
+<li>parse_number() - atoi() and atof() </li>
+<li>print_number() - itoa() and fto2()</li>
+<li>parse_string() - to a unescape string</li>
+<li>print_string() - to a unescape string</li>
+<li>print_string_ptr() - to a escape string</li>
+<li>skip() - trim invisible char such as whitespace cr lf</li>
+<li>cJSON_ParseWithOpts - return_parse_end:the point to the remain string require_null_terminated:there is no remain string or return error</li>
+<li>cJSON_Parse() - string to json the same as cJSON_ParseWithOpts(value, 0, 0)</li>
+<li>cJSON_Print() - json to string</li>
+<li>cJSON_PrintUnformatted() - json to unformatted string</li>
+<li>parse_value() - parse json token</li>
+<li>print_value() - json to string</li>
+<li>parse_array() - parse json array token to string</li>
+<li>print_array() - json array to string</li>
+<li>parse_object() - string to json object</li>
+<li>print_object() - json object</li>
+<li>cJSON_GetArraySize() - json array size</li>
+<li>cJSON_AddItemToArray() - add json to json array</li>
+<li>cJSON_AddItemToObject() - add json to json object</li>
+<li>cJSON_AddItemReferenceToArray() - add json to json array without clone</li>
+<li>cJSON_AddItemReferenceToObject() - add json to json object without clone</li>
+<li>cJSON_DetachItemFormObject</li>
+<li>parse_object() </li>
+</ul>
+
+<h2>Process</h2>
+
+<p>parse_value() - parse the type of json or call parse_array() or parse_object()
+parse_array() - in loop, parse call parse_value() for every object in array.
+parse_object() - call parse self and loop to parse its childern by parse_string</p>
+
+#html
