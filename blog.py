@@ -93,6 +93,7 @@ l_about_me = '关于我'
 l_what_is_my_name = '我的手机号'
 l_donate = '捐赠'
 l_advert = '广告'
+l_news = '新闻'
 
 # version
 version = '15b3TA'
@@ -805,6 +806,7 @@ def renderHtmlHeader(title=None, links=[]):
     print '<div id=\"menu\">'
     print '<a href="%s">%s</a>|' % (baseurl, l_home)
     print '<a href="%s">%s</a>|' % (baseurl+'/application/', l_application)
+    print '<a href="%s">%s</a>|' % (baseurl+'/rss/', l_news)
     print '<a href="%s">%s</a>'  % (baseurl+'/aboutme', l_about_me)
     print "</div>" #menu
     
