@@ -806,7 +806,7 @@ def renderHtmlHeader(title=None, links=[]):
     print '<div id=\"menu\">'
     print '<a href="%s">%s</a>|' % (baseurl, l_home)
     print '<a href="%s">%s</a>|' % (baseurl+'/application/', l_application)
-    print '<a href="%s">%s</a>|' % ('news.codepongo.com', l_news)
+    print '<a href="%s">%s</a>|' % ('http://news.codepongo.com', l_news)
     print '<a href="%s">%s</a>'  % (baseurl+'/aboutme', l_about_me)
     print "</div>" #menu
     
