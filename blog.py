@@ -25,6 +25,7 @@ import cgi
 import pickle
 import os
 from urllib import quote_plus, unquote_plus
+import time
 from time import localtime, strptime, strftime
 from sets import Set
 from datetime import datetime, timedelta
@@ -37,6 +38,7 @@ import random
 import zlib
 import logging
 import sys
+import dbhash
 # kludge to get md5 hexdigest working on all python versions. Function
 # md5fun should be used only to get ascii like this
 # md5fun("kukkaisvoima").hexdigest()
@@ -45,6 +47,7 @@ try:
 except ImportError: # older python (older than 2.5) does not hashlib
     import md5
     md5fun = md5.new
+from bmp24 import *
 
 from blog_settings import *
 
@@ -102,6 +105,32 @@ version = '15b3TA'
 dates = {} #dates[datetime] = filename
 datenow = datetime.now()
 datenow_date = datenow.date()
+
+def mkCaptcha():
+    letters_idx = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    letters = {}
+    for y in range(2):
+        for x in range(18):
+            letters[letters_idx[y*18+x]] = (x, y, x+1, y+1)
+    bmp = Bmp24File()
+    bmp.read('letters.bmp')
+
+    letter_width = bmp.raster.width/18
+    letter_height = bmp.raster.height/2
+    for k in letters.keys():
+        byte = ''
+        left = letters[k][0] * letter_width
+        top = letters[k][1] * letter_height
+        right = letters[k][2] * letter_width
+        bottom = letters[k][3] * letter_height
+        letters[k] = bmp.raster.cut(left, top, right, bottom)
+    captcha_num = 4
+    captcha = random.sample(letters_idx, captcha_num)
+    raster = Raster()
+    for c in captcha:
+        raster.combine(letters[c])
+    data = str(Bmp24File(raster))
+    return ''.join(captcha), data
 
 def timeAgo(date):
     day_str = ""
@@ -477,6 +506,8 @@ def handleIncomingComment(fs):
     nospam = fs.getvalue('nospam')
     subscribe = fs.getvalue('subscribe')
     filename = "%s.txt" % name
+    timestamp = fs.getvalue('timestamp')
+    captcha = fs.getvalue('captcha')
     comments_for_entry = getComments(filename)
 
     # validate comment
@@ -494,6 +525,14 @@ def handleIncomingComment(fs):
         return None
     if nospam != nospamanswer: # wrong answer
         return None
+    captchadb = dbhash.open(os.path.join(indexdir,'captcha.db'), 'c')
+    if ''.join(captchadb[timestamp]) != captcha:
+        captchadb.pop(timestamp)
+        captchadb.close()
+        return None
+    captchadb.pop(timestamp)
+    captchadb.sync()
+    captchadb.close()
 
     # remove html tags
     comment = comment.replace('<','[')
@@ -665,6 +704,10 @@ class Entries:
         for key in swd:
             ents.append(Entry(indexindex[key], datadir))
         return ents
+
+def renderCaptcha(data):
+    print 'Content-Type: image/bmp\n'
+    print data
 
 def renderHtmlFooter():
     print "<div id=\"footer\">"
@@ -1222,12 +1265,16 @@ def renderHtml(entries, path, catelist, arclist, admin, page):
                 print "<label for=\"url\"><small>%s</small></label></p>" % l_webpage
                 print "<p><input type=\"text\" name=\"nospam\" id=\"nospam\" size=\"22\" tabindex=\"4\" />"
                 print "<label for=\"nospam\"><small>%s</small></label></p>" % l_nospam_question
+                timestamp = time.time()
+                print '<input type="hidden" name="timestamp" id="timestamp" value="%s" />' % timestamp
+                print '<p><input type="text" name="captcha" id="captcha" size="22" tabindex="5" />'
+                print '<img src="%s/captcha?%s" /></p>' % (baseurl, str(timestamp))
                 print "<p>%s</p>" % l_no_html
-                print "<p><textarea name=\"comment\" id=\"comment\" cols=\"40\" rows=\"7\" tabindex=\"4\"></textarea></p>"
-                print "<p><input name=\"submit\" type=\"submit\" id=\"submit\" tabindex=\"5\" value=\"%s\" />" % (l_submit)
+                print "<p><textarea name=\"comment\" id=\"comment\" cols=\"40\" rows=\"7\" tabindex=\"6\"></textarea></p>"
+                print "<p><input name=\"submit\" type=\"submit\" id=\"submit\" tabindex=\"7\" value=\"%s\" />" % (l_submit)
                 print "<input type=\"hidden\" name=\"comment_post_ID\" value=\"11\" />"
                 print "</p>"
-                print "<p><input type=\"checkbox\" name=\"subscribe\" id=\"subscribe\" tabindex=\"6\" value=\"subscribe\">%s</label></p>" % l_notify_comments
+                print "<p><input type=\"checkbox\" name=\"subscribe\" id=\"subscribe\" tabindex=\"8\" value=\"subscribe\">%s</label></p>" % l_notify_comments
                 print "</form>"
 
     if len(entries) > 1:
@@ -1571,6 +1618,16 @@ def main():
         filename = "%s.txt" % name
         unsubscribeComments(filename, unsubscribe_id)
         print 'Location: %s/%s#comments\n' % (baseurl, name)
+    elif len(path) == 1 and path[0] == 'captcha':
+        captchadb = dbhash.open(os.path.join(indexdir,'captcha.db'), 'c')
+        for k in captchadb.keys():
+            if querystr[0] != '' and float(querystr[0]) - float(3600) > float(k):
+                captchadb.pop(k)
+        captchadb[querystr[0]],data = mkCaptcha()
+
+        captchadb.sync()
+        captchadb.close()
+        return renderCaptcha(data)
     elif len(path) == 1 and path[0] == 'aboutme':
         return renderAboutMe()
     elif len(path) == 1 and path[0] == 'whatsmyuseragent':
