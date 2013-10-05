@@ -17,7 +17,7 @@ doctype = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http:
 # Email to send comments to
 blogemail = ''
 # Language for the feed
-language = 'zh_cn'
+language = 'zh-cn'
 # Number of entries per page
 numberofentriesperpage = 5
 # Directory which contains the blog entries

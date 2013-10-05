@@ -475,7 +475,7 @@ def updateCommentList():
                             "shorturl" : genShortUrl(c[0]),
                             "num" : c[2],
                             "author" : c[1].author,
-                            "subject" : entry.headline})
+                            "subject" : removeHtmlTags(entry.headline)})
 
     commentfile = open(os.path.join(indexdir,'recent_comments.index'), 'wb')
     pickle.dump(commentlist, commentfile)
@@ -849,7 +849,7 @@ def renderHtmlHeader(title=None, links=[]):
     print '<div id=\"menu\">'
     print '<a href="%s">%s</a>|' % (baseurl, l_home)
     print '<a href="%s">%s</a>|' % (baseurl+'/application/', l_application)
-    print '<a href="%s">%s</a>|' % ('http://news.codepongo.com', l_news)
+    print '<a href="%s" target="_blank">%s</a>|' % ('http://news.codepongo.com', l_news)
     print '<a href="%s">%s</a>'  % (baseurl+'/aboutme', l_about_me)
     print "</div>" #menu
     
@@ -1307,7 +1307,7 @@ def renderHtml(entries, path, catelist, arclist, admin, page):
     renderSidebarArchive(arclist)
     renderSidebarAdmin(entries)
     renderSidebarDonate()
-    renderAdvert()
+    #renderAdvert()
 
     print "</div>" # sidebar
 
@@ -1317,7 +1317,7 @@ def renderFeed(entries, path, categorieslist):
     rfc822time = "%a, %d %b %Y %H:%M:%S +0200"
     print "Content-Type: text/xml; charset=%s\n" % encoding
     print "<?xml version=\"1.0\" encoding=\"%s\"?>" % encoding
-    print "<!-- generator=\"Kukkaisvoima version %s\" -->" % version
+    print "<!-- generator=\" CodePongo (Base on Kukkaisvoima version %s)\" -->" % version
     print "<rss version=\"2.0\""
     print "xmlns:content=\"http://purl.org/rss/1.0/modules/content/\""
     print "xmlns:wfw=\"http://wellformedweb.org/CommentAPI/\""
@@ -1332,7 +1332,7 @@ def renderFeed(entries, path, categorieslist):
     print "<description>%s</description>" % description
     print "<pubDate>%s</pubDate>" % strftime(rfc822time, entries[0].date.timetuple())
     print "<lastBuildDate>%s</lastBuildDate>" % strftime(rfc822time, entries[0].date.timetuple())
-    print "<generator>http://23.fi/kukkaisvoima/</generator>"
+    print "<generator>http://codepongo.com/blog</generator>"
     print "<language>%s</language>" % language
 
     # print entries
