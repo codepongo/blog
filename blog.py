@@ -846,12 +846,22 @@ def renderHtmlHeader(title=None, links=[]):
     print "<h1><a href=\"%s\">%s</a></h1>" % (baseurl, blogname)
     print "<div id=\"slogan\">%s</div>" % slogan
     print "</div>" #header
-    print '<div id=\"menu\">'
+    print '<nav>'
+    print '<ul>'
+    print '<li>'
     print '<a href="%s">%s</a>|' % (baseurl, l_home)
+    print '</li>'
+    print '<li>'
     print '<a href="%s">%s</a>|' % (baseurl+'/application/', l_application)
+    print '</li>'
+    print '<li>'
     print '<a href="%s" target="_blank">%s</a>|' % ('http://news.codepongo.com', l_news)
+    print '</li>'
+    print '<li>'
     print '<a href="%s">%s</a>'  % (baseurl+'/aboutme', l_about_me)
-    print "</div>" #menu
+    print '</li>'
+    print '</ul>'
+    print "</nav>" #menu
     
 
 def renderComment(entry, comment, numofcomment,

@@ -6,7 +6,20 @@ like */
 body {
 	margin: 0;
 	padding: 0;
-	ba
+}
+
+nav {
+	float:right;
+}
+
+nav ul, nav ul li {
+	text-align:right;
+	padding-right:10px;
+	height:1.5em;
+	display: inline;
+	margin: 0;
+	padding: 0;
+	font-size:1.5em;
 }
 
 #content1 {
@@ -49,13 +62,6 @@ body {
 	background-image:url(/concise_banner.png);
 	background-repeat:no-repeat;
 	height:119px;
-}
-
-#menu {
-	text-align:right;
-	padding-right:10px;
-	height:1.5em;
-	font-size:2em;
 }
 
 a:link,

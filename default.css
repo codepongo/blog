@@ -9,6 +9,19 @@ body {
 	color: #383d44;
 }
 
+nav {
+	float:right;
+}
+
+nav ul, nav ul li {
+	padding-right:10px;
+	height:1.5em;
+	display: inline;
+	margin: 0;
+	padding: 0;
+	font-size:1.5em;
+}
+
 #content1 {
     font-family: Verdana, sans-serif;
 	font-size: small;
@@ -52,15 +65,6 @@ body {
     background-repeat:no-repeat;
     color: #693;
 	height:119px;
-}
-
-#menu {
-	text-align:right;
-	padding-right:10px;
-    color: #693;
-	height:1.5em;
-	font-size:2em;
-    background: #31363e;
 }
 
 a:link,
