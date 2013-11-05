@@ -732,6 +732,9 @@ def renderHtmlHeader(title=None, links=[]):
         print "<title>%s - %s </title>" % (blogname, slogan)
     print "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=%s\" />" % encoding
     print "<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" />" % stylesheet
+    print '<link rel="stylesheet" href="highlight/styles/vs.css">'
+    print '<script src="highlight/highlight.pack.js"></script>'
+    print '<script>hljs.initHighlightingOnLoad();</script>'
     print "<link rel=\"shortcut icon\" href=\"%s\"/>" % favicon
     print "<link rel=\"alternate\" type=\"application/rss+xml\" title=\"%s RSS Feed\" href=\"%s/feed/\" />" % (blogname, baseurl)
 
