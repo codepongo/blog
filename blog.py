@@ -861,7 +861,7 @@ def renderHtmlHeader(title=None, links=[]):
     print '<a href="%s" target="_blank">%s</a>|' % ('http://news.codepongo.com', l_news)
     print '</li>'
     print '<li>'
-    print '<a href="%s">%s</a>'  % (baseurl+'/aboutme', l_about_me)
+    print '<a href="%s">%s</a>'  % ('/aboutme', l_about_me)
     print '</li>'
     print '</ul>'
     print "</nav>" #menu
