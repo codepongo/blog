@@ -9,27 +9,24 @@ import copy
 import CGIHTTPServer
 
 class RequestHandler(CGIHTTPServer.CGIHTTPRequestHandler):
-    script = 'blog'
-    def is_executable(self, path):
-        if path[-(len(RequestHandler.script)):] == RequestHandler.script:
-            return True
-        else:
-            return CGIHTTPServer.CGIHTTPRequestHandler.is_executable(self, path)
     def is_cgi(self):
-        print 'self.path=', self.path
-        script= self.path[1:len(RequestHandler.script)+1]
-        print 'script=',script
-        rest = self.path[len(RequestHandler.script)+1:]
-        print 'rest=', rest
-        if RequestHandler.script == script:
-            if 'py' != os.path.splitext(script)[1]:
-                script += '.py'
-            self.cgi_info = ('', script+'/'+rest)
-            print self.cgi_info
+        split = self.path[1:].find('/')+1
+        if 0 != split:
+            script = self.path[0:split]
+            rest = self.path[split:]
+        else:
+            script = self.path[0:]
+            rest = ''
+        if os.path.isfile(script[1:]):
+            script = script[1:]
+        elif os.path.isfile(script[1:]+'.py'):
+            script = script[1:] + '.py'
+        self.cgi_info = ('', script+rest)
+        print self.cgi_info
+        if self.is_python(script):
             return True
         else:
             return False
-        pass
     def run_cgi(self):
         """Execute a CGI script."""
         path = self.path
@@ -198,7 +195,6 @@ class RequestHandler(CGIHTTPServer.CGIHTTPRequestHandler):
                 cmdline = [interp, '-u'] + cmdline
             if '=' not in query:
                 cmdline.append(query)
-
             self.log_message("command: %s", subprocess.list2cmdline(cmdline))
             try:
                 nbytes = int(length)
@@ -219,6 +215,12 @@ class RequestHandler(CGIHTTPServer.CGIHTTPRequestHandler):
                 if not self.rfile._sock.recv(1):
                     break
             stdout, stderr = p.communicate(data)
+            if 'location' == stdout[:len('location')].lower():
+
+                seeother = stdout[len('location')+1:].strip()
+                stdout = '''
+<html><head><meta http-equiv="refresh" content="0;url=%s"></head></html>''' % seeother
+
             self.wfile.write(stdout)
             if stderr:
                 self.log_error('%s', stderr)
