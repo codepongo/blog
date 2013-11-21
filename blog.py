@@ -734,7 +734,6 @@ def renderHtmlHeader(title=None, links=[]):
     print "<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" />" % stylesheet
     print '<link rel="stylesheet" href="highlight/styles/vs.css">'
     print '<script src="highlight/highlight.pack.js"></script>'
-    print '<script>hljs.initHighlightingOnLoad();</script>'
     print "<link rel=\"shortcut icon\" href=\"%s\"/>" % favicon
     print "<link rel=\"alternate\" type=\"application/rss+xml\" title=\"%s RSS Feed\" href=\"%s/feed/\" />" % (blogname, baseurl)
 
@@ -843,13 +842,13 @@ def renderHtmlHeader(title=None, links=[]):
            l_comment_cannot_be_empty)
     print google_analytics_script
     print "</head>"
-    print "<body>"
+    print '<body onload="alert('');hljs.initHighlightingOnLoad();">'
     print "<div id=\"content1\">"
     print "<div id=\"header\">"
     print "<h1><a href=\"%s\">%s</a></h1>" % (baseurl, blogname)
     print "<div id=\"slogan\">%s</div>" % slogan
     print "</div>" #header
-    print '<nav>'
+    print '<div id="nav">'
     print '<ul>'
     print '<li>'
     print '<a href="%s">%s</a>|' % (baseurl, l_home)
@@ -864,7 +863,7 @@ def renderHtmlHeader(title=None, links=[]):
     print '<a href="%s">%s</a>'  % ('/aboutme', l_about_me)
     print '</li>'
     print '</ul>'
-    print "</nav>" #menu
+    print "</div>" #menu
     
 
 def renderComment(entry, comment, numofcomment,
