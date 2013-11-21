@@ -18,11 +18,11 @@
 
 <h3>3. OOP</h3>
 
-<pre><code>self
-</code></pre>
+<pre data-language="c">
+self
+</pre>
 
-<pre>   
-<code>
+<pre data-language="c">   
 /* class.h BEGIN */
 @interface Class:NSObject
 {
@@ -36,7 +36,7 @@
 - (void)no_parameter_function;
 @end //Class
 /* class.h END */
-</code>
+</pre>
 
 <pre>
 /* class.m BEGIN */
@@ -52,13 +52,13 @@
 } //noparameter_function
 @end //Class
 /* class.m END */
-    </pre>
+</pre>
 
 ###4. Inheritance###
 
 Objective-C does not support multiple inheritance
 
-<pre>
+<pre data-language="c">
  /* Children.h BEGIN */
 @interface Children : Parent
 

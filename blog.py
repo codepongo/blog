@@ -718,6 +718,10 @@ def renderHtmlFooter():
     print "Proudly <b>NOT</b> powered by WordPress or Jekyll"
     print "</div>"
     print "</div>" # content1
+    print '<script src="/rainbow/js/rainbow.js"></script>'
+    print '<script src="/rainbow/js/language/generic.js"></script>'
+    print '<script src="/rainbow/js/language/c.js"></script>'
+    print '<script src="/rainbow/js/language/python.js"></script>'
     print "</body>"
     print "</html>"
 
@@ -732,8 +736,7 @@ def renderHtmlHeader(title=None, links=[]):
         print "<title>%s - %s </title>" % (blogname, slogan)
     print "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=%s\" />" % encoding
     print "<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" />" % stylesheet
-    print '<link rel="stylesheet" href="highlight/styles/vs.css">'
-    print '<script src="highlight/highlight.pack.js"></script>'
+    print '<link rel="stylesheet" href="/rainbow/themes/monokai.css">'
     print "<link rel=\"shortcut icon\" href=\"%s\"/>" % favicon
     print "<link rel=\"alternate\" type=\"application/rss+xml\" title=\"%s RSS Feed\" href=\"%s/feed/\" />" % (blogname, baseurl)
 
@@ -842,7 +845,7 @@ def renderHtmlHeader(title=None, links=[]):
            l_comment_cannot_be_empty)
     print google_analytics_script
     print "</head>"
-    print '<body onload="alert('');hljs.initHighlightingOnLoad();">'
+    print '<body>'
     print "<div id=\"content1\">"
     print "<div id=\"header\">"
     print "<h1><a href=\"%s\">%s</a></h1>" % (baseurl, blogname)
