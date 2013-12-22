@@ -1,0 +1,75 @@
+<h1>Project-Generator</h1>
+
+<h2>introduction</h2>
+
+<p><a href="https://github.com/Piot/Project-Generator">https://github.com/Piot/Project-Generator</a></p>
+
+<p>Project-Generator makes the native IDE project files.</p>
+
+<p>it supports Visual Studio(windows), Xcode(mac os x), makefile(linux) and so on.</p>
+
+<p>it likes the <a href="https://code.google.com/p/gyp/">GYP</a>.
+but, it is smaller, simpler and easier to understand than GYP.
+its config option in a XML file is more readable than GYP input format file.</p>
+
+<h2>process in generate.py</h2>
+
+<ul>
+<li>parses arguments</li>
+<li>project module creates target project</li>
+<li>project parser module initials target project with xml node</li>
+<li>generator module write to the project files with project write module
+<h2&gt;project</h2&gt;</li>
+</ul>
+
+<h3>project.py</h3>
+
+<ul>
+<li>class SourceFileNode - all source files</li>
+<li>class Dependecy - dependent projects</li>
+<li>class Define - macros</li>
+<li>class Settings - project settings likes include paths, defines, dependecies, libraries,framewoorks and so on</li>
+<li>class configuration - inherit from Settings, it is a build Settings with a name such as "debug", "relase" and so on.</li>
+<li>class Project - the project object</li>
+<li>relationship</li>
+</ul>
+
+<pre data-language="C">
+Project+- depandencies
+       +- configurations
+       +- settings-+-paths
+                   +-defines
+                   +-denpendecies
+                   +-libraries
+                   +-frameworks
+</pre>
+
+<h3>project_object.py</h3>
+
+<h3>project_parser.py</h3>
+
+<p>initial project object with xml node</p>
+
+<h3>project_path.py</h3>
+
+<p>operation about paths</p>
+
+<h3>project_write.py</h3>
+
+<ul>
+<li>class ProjectFileCreator:a Factory in where ProjectFileOutput is made.</li>
+<li>class ProjectOutput:a controller of project file's indent </li>
+<li>class ProjectFileOutput:inherit from <strong>ProjectOutput</strong> wrapper of file operation</li>
+</ul>
+
+<h2>generator</h2>
+
+<ul>
+<li>codeblocks.py</li>
+<li>codelite.py</li>
+<li>makefile.py makefile in Linux platform</li>
+<li>visualc.py Visual Studio in Windows platform</li>
+<li>xcode.py Xcode in Mac OS X platform</li>
+</ul>
+
+#html
