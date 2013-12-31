@@ -93,6 +93,7 @@ l_show_more_categories = '更多标签'
 l_home = '主页'
 l_application = '应用'
 l_note = '日记'
+l_cook = '烹饪'
 l_news = '新闻'
 l_about_me = '关于我'
 l_what_is_my_name = '我的手机号'
@@ -862,6 +863,9 @@ def renderHtmlHeader(title=None, links=[]):
     print '</li>'
     print '<li>'
     print '<a href="%s" target="_blank">%s</a>|' % ('http://news.codepongo.com', l_news)
+    print '</li>'
+    print '<li>'
+    print '<a href="%s">%s</a>|' % ('http://cook.codepongo.com', l_cook)
     print '</li>'
     print '<li>'
     print '<a href="%s">%s</a>|' % ('http://note.codepongo.com', l_note)
