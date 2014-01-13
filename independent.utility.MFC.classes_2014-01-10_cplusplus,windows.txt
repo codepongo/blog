@@ -1,0 +1,102 @@
+<h1>可单独使用的MFC基础类</h1>
+
+<p>从visual C++.NET 2002(VC 7.0)开始，一些存在于MFC的基础类被重写和修订，削减了与
+其他MFC类之间的关系。这些类库可以独立被用于任何的native C++工程。</p>
+
+<h2>类</h2>
+
+<ul>
+<li>CFileTime</li>
+<li>CFileTimeSpan</li>
+<li>CFixedStringT</li>
+<li>CImage</li>
+<li>COleDateTime</li>
+<li>COleDateTimeSpan</li>
+<li>CPoint</li>
+<li>CRect</li>
+<li>CSimpleStringT</li>
+<li>CSize</li>
+<li>CStrBufT</li>
+<li>CStringData</li>
+<li>CStringT</li>
+<li>CTime</li>
+<li>CTimeSpan</li>
+<li>IAtlStringMgr</li>
+</ul>
+
+<pre data-language="C">
+CSimpleStringT
+ |
+ +--CStringT
+     |
+     +--CFixedStringT
+</pre>
+
+<h2>测试代码</h2>
+
+<h3>例子</h3>
+
+<p><a href="https://github.com/codepongo/utocode/tree/master/windows/independentmfc">https://github.com/codepongo/utocode/tree/master/windows/independentmfc</a></p>
+
+<pre data-language="C">
+int 
+main(int argc, char* argv[])
+{
+    /* string */
+    CStringT< char, StrTraitATL< char, ChTraitsCRT< char > > > str;
+    str = "hi";
+    str += ",independent MFC!\n";
+    printf(str);
+
+
+    /* point size rect */
+    CPoint pt;
+    CRect rc;
+    CSize sz;
+    rc.left = rc.top = 0;
+    rc.right = rc.bottom = 100;
+    sz = rc.Size();
+    pt.x = 10;
+    pt.y = 10;
+    printf("rect(%d, %d, %d, %d):(%d,%d) move (%d, %d)\n",
+        rc.left, rc.top, rc.right, rc.bottom, sz.cx, sz.cy, pt.x, pt.y);
+
+    /* time */
+    CTime tms;
+    CTime tm;
+    str.Format("%04d-%02d-%02d %02d:%02d:%02d\n",
+        tms.GetYear(), tms.GetMonth(), tms.GetDay(), tm.GetHour(), tm.GetMinute(), tm.GetSecond());
+    printf(str);
+
+    CFileTime ft;
+    CFileTimeSpan fts;
+    COleDateTime dt;
+    COleDateTimeSpan dts;
+
+    str.Format("%lld\n", ft.GetTime());
+    printf(str);
+
+    /* image */
+    CImage image;
+    image.Load(L"image.png");
+    str.Format("width:%d height%d\n", image.GetWidth(), image.GetHeight());
+    printf(str);
+
+    system("pause");
+    return 0;
+}
+</pre>
+
+<p><img src="/independent.MFC.jpg" alt="对MFC无依赖" /></p>
+
+<h2>参考</h2>
+
+<p><a href="http://msdn.microsoft.com/en-us/library/ekdt199a.aspx">ATL/MFC Shared Classes</a></p>
+
+<p><a href="http://msdn.microsoft.com/en-us/library/zzs00fs6.aspx">Classes Shared by MFC and ATL</a></p>
+
+<p><a href="http://msdn.microsoft.com/en-us/library/ws8s10w4.aspx">MFC Hierarchy Chart</a></p>
+
+<p><a href="http://blog.csdn.net/lvan100/article/details/7611646">CString模板结构解析</a></p>
+
+#html
