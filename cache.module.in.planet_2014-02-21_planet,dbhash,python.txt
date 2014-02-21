@@ -1,0 +1,101 @@
+<h1>The Cahche module in Planet</h1>
+
+<h2>modules</h2>
+
+<pre data-language="C">
++--------------+       +-----+
+|planet.Channel|-+-is--|cache|
++----------+---+  \    +-----+
+            \      \         +------+
+             \      +-have-+-|dbhash|
+              \           /  +------+
+                +--------+
+</pre>
+
+<h3>dbhash</h3>
+
+<p>Planet(http://www.planetplanet.org/) uses the hashdb module to cache the feeded
+data.</p>
+
+<p>The <strong>dbhash</strong> module provides a function to open databases using the BSD db library. 
+This module mirrors the interface of the other Python database modules that 
+provide access to DBM-style databases. The bsddb module is required to use dbhash.</p>
+
+<pre data-language="python">
+"""output the hashdb"""
+import sys
+import dbhash
+db = dbhash.open(sys.argv[1], 'r')
+print db.first()
+for i in xrange(1, len(db)):
+    print db.next()
+db.close()
+</pre>
+
+<p>The <strong>dbm</strong> library was a simple database engine, originally written by Ken Thompson 
+and released by AT&amp;T in 1979. The name is a three letter acronym for database 
+manager, and can also refer to the family of database engines with APIs and 
+features derived from the original dbm.</p>
+
+<h2>planet.Channel and cache modules</h2>
+
+<p>the module description is very clear and easy to know, so you can use 
+<a href="http://www.python.org/doc//current/library/functions.html#help">help()</a> to
+show the module description and read it.</p>
+
+<h2>database file</h2>
+
+<p>the database is key/value database
+* " keys" is the key of the root item. </p>
+
+<ul>
+<li><p>the root item's value is the keys of the channel properties that is splited 
+by blank space. </p></li>
+<li><p>the key in that there is not blank space is the key of the news item. </p></li>
+<li><p>the news item's value is the keys of the news properties that is splited 
+by blank space.</p></li>
+<li><p>the news property's key is the unit of the news item's key and the part of the
+news item's value.</p></li>
+<li><p>the channel property item and the news property item the key of that includes
+the string " type" is provided the type of the news property's value.</p></li>
+</ul>
+
+<p>For example:
+the RSS:</p>
+
+<pre data-language="xml">
+<?xml version="1.0" encoding="utf-8"?>
+<rss>
+<channel>
+<title>CodePongo: json</title>
+<lastBuildDate>Thu, 22 Aug 2013 18:16:02 +0200</lastBuildDate>
+<item>
+<title><h1>cJSON source analysis</h1> </title>
+</item>
+</channel>
+</rss>
+</pre>
+
+<p>the database:</p>
+
+<pre data-language="C">
+(' keys', 'lastbuilddate title')
+('lastbuilddate type', 'string')
+('lastbuilddate', 'Thu, 22 Aug 2013 18:16:02 +0200')
+('title type', 'string')
+('title', 'CodePongo: json')
+('http://codepongo.com/blog/3uhyc1/ title type', 'string')
+('http://codepongo.com/blog/3uhyc1/ title', '<h1>cJSON source analysis</h1>')
+('http://codepongo.com/blog/3uhyc1/', 'title')
+</pre>
+
+<h2>reference</h2>
+
+<p><a href="http://www.planetplanet.org/">planet home page</a></p>
+
+<p><a href="http://simple-is-better.com/project/planet">planet introduction</a></p>
+
+<p><a href="http://www.python.org/doc//current/library/dbhash.html">dbhash module</a>
+<a href="http://en.wikipedia.org/wiki/Trivial_Database">database</a></p>
+
+#html
