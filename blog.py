@@ -989,7 +989,7 @@ def renderArchive(ent):
 
 def renderSearch(entries, searchstring):
     renderHtmlHeader(l_search)
-    print "<div id=\"content3\">"
+    print "<div id=\"content2\">"
 
     # Remove some special character so that one don't exhaust the web
     # host with stupid .*? searches
@@ -1034,9 +1034,9 @@ def renderSearch(entries, searchstring):
         renderEntryLinks([entry], pline, com_list)
 
     if len(matchedfiles) == 0: # no matches
-        print l_search2
+        print '<h1>' + l_search2 + '</h1>'
 
-    print "</div>" # content3
+    print "</div>" # content2
     renderHtmlFooter()
     return
 

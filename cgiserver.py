@@ -17,12 +17,19 @@ class RequestHandler(CGIHTTPServer.CGIHTTPRequestHandler):
         else:
             script = self.path[0:]
             rest = ''
+        split = self.path[1:].find('?')+1
+        if 0 != split:
+            script = self.path[0:split]
+            rest = self.path[split:]
+        else:
+            script = self.path[0:]
+            rest = ''
+
         if os.path.isfile(script[1:]):
             script = script[1:]
         elif os.path.isfile(script[1:]+'.py'):
             script = script[1:] + '.py'
         self.cgi_info = ('', script+rest)
-        print self.cgi_info
         if self.is_python(script):
             return True
         else:
@@ -88,12 +95,11 @@ class RequestHandler(CGIHTTPServer.CGIHTTPRequestHandler):
         env['SERVER_PROTOCOL'] = self.protocol_version
         env['SERVER_PORT'] = str(self.server.server_port)
         env['REQUEST_METHOD'] = self.command
-        uqrest = urllib.unquote(rest)
-        env['PATH_INFO'] = uqrest
+        uqrest = urllib.unquote(self.cgi_info[1])
+        env['PATH_INFO'] = '/'+uqrest
         env['PATH_TRANSLATED'] = self.translate_path(uqrest)
         env['SCRIPT_NAME'] = scriptname
         if query:
-            print 'query:',query
             env['QUERY_STRING'] = query
         host = self.address_string()
         if host != self.client_address[0]:
@@ -178,7 +184,6 @@ class RequestHandler(CGIHTTPServer.CGIHTTPRequestHandler):
                 os.dup2(self.rfile.fileno(), 0)
                 os.dup2(self.wfile.fileno(), 1)
                 os.execve(scriptfile, args, env)
-                print scriptfile, args, env
             except:
                 self.server.handle_error(self.request, self.client_address)
                 os._exit(127)
