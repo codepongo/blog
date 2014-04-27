@@ -1081,7 +1081,7 @@ def renderAdvert():
 
 def renderSidebarDonate():
     print "<h2>%s</h2>" % l_donate
-    print '<a href="http://me.alipay.com/codepongo"><img src="https://img.alipay.com/sys/personalprod/style/mc/btn-index.png" /></a>'
+    print '<img src="alipay.png" />'
     print "<br />"
     print """\
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
