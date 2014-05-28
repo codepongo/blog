@@ -14,6 +14,7 @@ if [ ! -d "$2" ];then
 fi
 cp *.py $2
 cp -r pyftpdlib $2
+cp letters.bmp $2
 #data 
 if [ ! -d "$3" ]; then
 	mkdir $3
