@@ -23,17 +23,21 @@ def main():
         elif ext == '.py':
             if f in ['cgiserver.py', 'blog_setting.py']:
                 continue
+            if f == 'blog.py':
+                shutil.copy(os.path.join(source, f), os.path.join(cgi_path, name))
+                continue
             shutil.copy(os.path.join(source, f), os.path.join(cgi_path, f))
         elif f == 'letters.bmp':
             shutil.copy(os.path.join(source, f), os.path.join(cgi_path, f))
         elif ext in ['.md']:
             shutil.copy(os.path.join(source, f), os.path.join(data_path, f))
         elif ext in ['.txt']:
+            print sys.platform
             if sys.platform == 'linux':
                 new_name = f.replace('_', ':')
             else:
                 new_name = f
-            shutil.copy(os.path.join(source, f), os.path.join(html_path, new_name))
+            shutil.copy(os.path.join(source, f), os.path.join(data_path, new_name))
         else:
             print os.path.join(source, f)
 
