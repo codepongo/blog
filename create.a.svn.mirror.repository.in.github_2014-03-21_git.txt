@@ -1,0 +1,53 @@
+<h1>Create a Subversion Mirror Repository In Github</h1>
+
+<h2>在Github上建立一个SVN的镜像库</h2>
+
+<p>1.<a href="http://codepongo.com/blog/4WiIFW">Create repository 创建库</a></p>
+
+<p>2.clone the git repository 克隆代码至本地</p>
+
+<pre data-language="shell">
+$git clone git@github.com:user-name/repository-name
+</pre>
+
+<p>3.set svn as a remote repository 把svn仓库添加为远程仓库</p>
+
+<pre data-language="shell">
+$git svn init -T http://url/svn/trunk/
+</pre>
+
+<p>4.fetch 获取svn仓库的代码</p>
+
+<pre data-language="shell">
+$git svn fetch
+</pre>
+
+<p>5.show all branch 显示所有分支</p>
+
+<pre data-language="shell">
+$git branch -a
+* master
+  remotes/origin/HEAD -> origin/master
+  remotes/origin/master
+  remotes/origin/trunk
+</pre>
+
+<p>remotes/trunk is the svn branch 其中，remotes/trunk为svn分支</p>
+
+<p>6.merge 合并svn分支</p>
+
+<pre data-language="shell">
+$git merge trunk
+</pre>
+
+<p>7.push 推送至github</p>
+
+<pre data-language="shell">
+$git push
+</pre>
+
+<h2>refference</h2>
+
+<p><a href="http://blog.yesmeck.com/archives/create-svn-mirror-on-github/">在GitHub上建立一个SVN仓库的镜像</a></p>
+
+#html

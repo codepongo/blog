@@ -19,7 +19,9 @@ def main():
         if ext in ['.jpg', '.png', '.css', '.ico']:
             shutil.copy(os.path.join(source, f), os.path.join(html_path, f))
         elif f == 'rainbow':
-            shutil.copytree(os.path.join(source, f), os.path.join(html_path, f))
+            target = os.path.join(html_path, f)
+            if os.path.isdir(target):
+                shutil.copytree(os.path.join(source, f), target)
         elif ext == '.py':
             if f in ['cgiserver.py', 'blog_setting.py']:
                 continue
@@ -32,8 +34,7 @@ def main():
         elif ext in ['.md']:
             shutil.copy(os.path.join(source, f), os.path.join(data_path, f))
         elif ext in ['.txt']:
-            print sys.platform
-            if sys.platform == 'linux':
+            if sys.platform == 'linux2':
                 new_name = f.replace('_', ':')
             else:
                 new_name = f
