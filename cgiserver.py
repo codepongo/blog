@@ -7,24 +7,21 @@ import SimpleHTTPServer
 import select
 import copy
 import CGIHTTPServer
+import urlparse
 
 class RequestHandler(CGIHTTPServer.CGIHTTPRequestHandler):
     def is_cgi(self):
-        split = self.path[1:].find('/')+1
+        o = urlparse.urlparse(self.path)
+        split = o.path[1:].find('/')+1
         if 0 != split:
             script = self.path[0:split]
             rest = self.path[split:]
         else:
-            script = self.path[0:]
+            script = o.path
             rest = ''
-        split = self.path[1:].find('?')+1
-        if 0 != split:
-            script = self.path[0:split]
-            rest = self.path[split:]
-        else:
-            script = self.path[0:]
-            rest = ''
-
+        if o.query != '':
+            query = '?' + o.query
+            rest = rest + '?' + o.query
         if os.path.isfile(script[1:]):
             script = script[1:]
         elif os.path.isfile(script[1:]+'.py'):
@@ -36,35 +33,19 @@ class RequestHandler(CGIHTTPServer.CGIHTTPRequestHandler):
             return False
     def run_cgi(self):
         """Execute a CGI script."""
-        path = self.path
         dir, rest = self.cgi_info
-
-        i = path.find('/', len(dir) + 1)
-        while i >= 0:
-            nextdir = path[:i]
-            nextrest = path[i+1:]
-
-            scriptdir = self.translate_path(nextdir)
-            if os.path.isdir(scriptdir):
-                dir, rest = nextdir, nextrest
-                i = path.find('/', len(dir) + 1)
-            else:
-                break
-
+        o = urlparse.urlparse(rest)
         # find an explicit query string, if present.
-        i = rest.rfind('?')
-        if i >= 0:
-            rest, query = rest[:i], rest[i+1:]
-        else:
-            query = ''
+        query = str(o.query)
 
         # dissect the part after the directory name into a script name &
         # a possible additional path, to be stored in PATH_INFO.
-        i = rest.find('/')
+        path = str(o.path)
+        i = path.find('/')
         if i >= 0:
-            script, rest = rest[:i], rest[i:]
+            script, rest = path[:i], path[i:]
         else:
-            script, rest = rest, ''
+            script, rest = path, ''
 
         scriptname = dir + '/' + script
         scriptfile = self.translate_path(scriptname)
@@ -95,7 +76,12 @@ class RequestHandler(CGIHTTPServer.CGIHTTPRequestHandler):
         env['SERVER_PROTOCOL'] = self.protocol_version
         env['SERVER_PORT'] = str(self.server.server_port)
         env['REQUEST_METHOD'] = self.command
-        uqrest = urllib.unquote(self.cgi_info[1])
+        if query != '':
+            if rest != '/captcha':
+                rest = script + rest
+            else:
+                query = query.split('?')[0]
+        uqrest = urllib.unquote(rest)
         env['PATH_INFO'] = '/'+uqrest
         env['PATH_TRANSLATED'] = self.translate_path(uqrest)
         env['SCRIPT_NAME'] = scriptname
