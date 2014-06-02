@@ -13,8 +13,8 @@ e.g.
 <li><strong>NOTICE</strong> there is a underline at the front of 'function' 注意函数名前有下划线</li>
 <li>function is the function name function为函数名</li>
 <li>W/A is ascii or unicode function W/A为区别windows API的ascii和unicode版</li>
-<li>size is the size of all arguments of the function, <a href="http://blog.csdn.net/lcy9819/article/details/6542277">more(chinese)</a> 
-size为函数所有参数的字节数，<a href="http://blog.csdn.net/lcy9819/article/details/6542277">详细</a></li>
+<li>size is the size of all arguments of the function, <a href="http://www.codeproject.com/Articles/518159/10-Even-More-Visual-Studio-Debugging-Tips-for-Nati">more</a> 
+size为函数所有参数的字节数，<a href="http://blog.csdn.net/liuchen1206/article/details/8559336">详细</a></li>
 </ul>
 
 <p>for example 例如:</p>
@@ -28,6 +28,14 @@ MessageBoxW(
     __in_opt LPCWSTR lpCaption,
     __in UINT uType);
 size = sizeof(HWND) + sizeof(LPCWSTR) + sizeof(LPCWSTR) + sizeof(UINT)
+</pre>
+
+<p>或者 or</p>
+
+<pre data-language="shell">
+C:\Program Files (x86)\Debugging Tools for Windows (x86)>dbh.exe -s:srv*C:\Symbo
+ls*http://msdl.microsoft.com/Download/Symbols -d C:\Windows\SysWOW64\user32.dl
+l enum *MessageBox*
 </pre>
 
 <p>so, the breakpoint at the 'messagebox' function is 
