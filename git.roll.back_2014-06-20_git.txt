@@ -1,0 +1,21 @@
+<h1>Roll Back with GIT GIT回滚</h1>
+
+<ul>
+<li>force reset to the version of the last two 
+取消当前版本之前的两次提交</li>
+</ul>
+
+<pre>
+git reset --hard HEAD~2 
+</pre>
+
+<ul>
+<li>force push to the remote re
+强制提交到远程版本库，从而删除之前的两次提交数据</li>
+</ul>
+
+<pre>
+git push origin HEAD --force
+</pre>
+
+#html
