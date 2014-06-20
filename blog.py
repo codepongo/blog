@@ -862,16 +862,16 @@ def renderHtmlHeader(title=None, links=[]):
     print '<a href="%s">%s</a>|' % (baseurl+'/application/', l_application)
     print '</li>'
     print '<li>'
-    print '%s|' % (l_news)
+    print '<a href="%s">%s</a>|' % ('http://news.codepongo.com', l_news)
     print '</li>'
     print '<li>'
-    print '%s|' % (l_cook)
+    print '<a href="%s">%s</a>|' % ('http://cook.codepongo.com', l_cook)
     print '</li>'
     print '<li>'
-    print '%s|' % (l_note)
+    print '<a href="%s">%s</a>|' % ('http://note.codepongo.com', l_note)
     print '</li>'
     print '<li>'
-    print '<a href="%s">%s</a>'  % (baseurl+'/aboutme/', l_about_me)
+    print '<a href="%s">%s</a>'  % ('http://me.codepongo.com', l_about_me)
     print '</li>'
     print '</ul>'
     print "</div>" #menu
