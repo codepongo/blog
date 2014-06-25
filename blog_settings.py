@@ -4,7 +4,7 @@
 # Url of the blog (without trailing /)
 baseurl = 'http://127.0.0.1:8000/blog'
 # Use absolute url for this, like http://yourdomain/blog/kukka.css
-stylesheet = '/concise.css'
+stylesheet = '/cr.css'
 # Use absolute url for this, like http://yourdomain/blog/feed-icon-14x14.png
 feedicon = '/feed-icon-14x14.png'
 blogname = 'CodePongo'

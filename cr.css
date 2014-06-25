@@ -1,0 +1,148 @@
+/* This file is part of Kukkaisvoima. It is meant to be example css
+for Kukkaisvoima nothing more. This is config file. Kukkaisvoima's
+license don't affect this file. So you may freely modify this as you
+like */
+
+body {
+	margin: 0;
+	padding: 0;
+}
+
+#nav {
+	color:#7f7f7f;
+}
+
+#nav ul, #nav ul li {
+	float:left;
+	text-align:right;
+	padding-right:10px;
+	height:1.5em;
+	display: inline;
+	margin: 0;
+	padding: 0;
+	font-size:1.5em;
+	font-weight:normal;
+}
+
+#nav ul li a {
+	color:#7f7f7f;
+}
+
+#content1 {
+	font-family: Verdana, sans-serif;
+	font-size: small;
+	margin: auto;
+	width: 90em;
+}
+
+#content2 {
+	float: left;
+	width: 65em;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	padding: 20px;
+}
+#content2 a {
+}
+
+#content3 {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	padding:20px;
+	line-height: 120%
+}
+
+#sidebar {
+	float: right;
+	width: 230px;
+	padding-top: 40px;
+	font-size: 1.2em;
+	line-height: 1.25;
+}
+
+#sidebar li {
+	list-style-type: square;
+	margin-left: -1em;
+}
+
+#header {
+	padding-left:5em;
+	background-image:url(/cr_banner.png);
+	background-repeat:no-repeat;
+	height:119px;
+}
+
+a:link{
+	color: #7f7f7f;
+	font-weight:bold;
+	text-decoration: none;
+}
+a:visited {
+	text-decoration: none;
+	color:#bcbcbc;
+}
+
+h1 a:link,
+h1 a:visited {
+	border-bottom: none;
+	color: #7f7f7f;
+}
+
+h2 {
+	color: #7f7f7f;
+}
+
+h2 a:link,
+h2 a:visited {
+	color: #7f7f7f;
+}
+
+h3 {
+	color: #7f7f7f;
+}
+
+a:hover {
+}
+
+p {
+	text-align: left;
+}
+
+li {
+	text-align: left;
+	margin: .5em;
+}
+
+img {
+	border: none;
+}
+
+#footer {
+	padding: 2em;
+	clear:both;
+}
+pre {
+	padding: 1em;
+}
+
+#hit {
+	display: inline;
+	text-decoration: none;
+}
+
+h1,
+h2,
+div {
+	padding:0;
+	margin:0;
+}
+
+blockquote {
+  border-left: 3px solid;
+  font-style:normal;
+  padding: 0 0 0 10px;
+  display: block;
+  line-height: 22px;
+  vertical-align:baseline;
+  font-size: 100%;
+}
