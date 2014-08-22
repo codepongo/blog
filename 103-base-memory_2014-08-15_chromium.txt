@@ -1,0 +1,60 @@
+<h1>内存管理</h1>
+
+<h2>aligned_memory</h2>
+
+<ul>
+<li>static存储一个类，并需要手动调用对象的构造析构函数</li>
+<li>lazy instance 中使用</li>
+</ul>
+
+<h2>discardable_memory</h2>
+
+<ul>
+<li>可回收内存，用于缓存大对象而不用担心内存不足的问题。</li>
+<li>当内存不足时，系统可回收已解锁的内存资源。</li>
+<li>使用listener模式，注册对内存压力进行监听。</li>
+</ul>
+
+<h2>ref_counted</h2>
+
+<ul>
+<li>RefCounted(Base|ThreadSafeBase) 不能作为参数被用于传递应该使用scoped_refptr </li>
+<li>RefCounted</li>
+<li>RefCountedThreadSafe 线程安全引用计数</li>
+<li>scoped_refptr 引用计数对象的智能指针</li>
+<li>RefCountedDeleteOnMessageLoop 在指定的消息循环中删除的引用计数</li>
+<li>RefCountedStaticMemory</li>
+<li>RefCountedBytes - std::vector实现</li>
+<li>RefCountedString - std::string 实现</li>
+</ul>
+
+<h2>scoped_handle</h2>
+
+<p>智能 FILE 封装</p>
+
+<h2>scoped<em>open</em>process</h2>
+
+<p>智能 进程 句柄 封装</p>
+
+<h2>scoped_ptr</h2>
+
+<p>scoper 帮助管理指针的生命周期</p>
+
+<h2>shared_memory</h2>
+
+<p>windows下用内存文件映射(file map)实现</p>
+
+<h2>singleton</h2>
+
+<p>单例模式</p>
+
+<h2>weak ptr</h2>
+
+<ul>
+<li>weak pointers 指向一个对象，此对象被多个对象拥有，其中一个拥有者释放了此对象，
+其他拥有者能正常运行。</li>
+<li>通过工厂类获取（WeakPtrFactory）， 工厂类包含一个拥有者（WeakReferenceOwner），
+拥有者包含一个智能指针和一个是否有效标志</li>
+</ul>
+
+#html

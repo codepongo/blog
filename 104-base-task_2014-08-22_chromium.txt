@@ -1,0 +1,27 @@
+<h1>Task</h1>
+
+<h2>task</h2>
+
+<ul>
+<li>base/pending_task.cc(h)</li>
+<li>继承自tracking info track info相关说明位于文件tracked_object.h中</li>
+<li>task为任务</li>
+<li>posted_from 位置
+<ul>
+<li>Location 位于base/location.h(cc)</li>
+</ul></li>
+<li><p>重载小于操作符，根据时间戳和sequence_num比较任务优先级</p>
+
+<h2>task queue</h2></li>
+<li><p>incoming<em>task</em>queue - 任务队列</p>
+
+<ul>
+<li>队列数据结构+锁实现</li>
+<li>task的时间戳一样则用sequence_num标识予以区别</li>
+<li>ReloadWorkQueue() 从incoming queue 加载 task 放入 work queue(task queue和delayed task queue)</li>
+</ul></li>
+<li>task queue 实时任务队列</li>
+<li>delayed task queue 延时任务队列</li>
+</ul>
+
+#html

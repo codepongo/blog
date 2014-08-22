@@ -1,0 +1,76 @@
+<h1>chromium进程通信-笔记</h1>
+
+<p><a href="http://dev.chromium.org/developers/design-documents/inter-process-communication">原文inter process communication</a></p>
+
+<h2>实现</h2>
+
+<ul>
+<li>windows采用命名管道</li>
+<li>linux/x os 采用socketpair()</li>
+<li>browser process中 I/O thread处理消息避免UI thread阻塞；view通过ChannelProxy进行消息的收发，ChannelProxy::MessageFilter
+插入RenderProcessHost用于过滤资源请求类消息在I/O thread中处理</li>
+<li><p>render process中 main render thread用于处理browser和webkit的通信，并提供同步通信机制</p>
+
+<h2>消息类型</h2></li>
+<li><p>control message - 直接由View/ViewHost处理</p></li>
+<li>routed message - 由View派发给注册routed的对象处理</li>
+<li>View message - 发送给RenderView的消息</li>
+<li>ViewHost message - 发送给RenderViewHost的消息</li>
+<li>PluginProcess - message browser process发送给plugin process的消息</li>
+<li><p>PluginProcessHost - plugin process发送给browser process的消息</p>
+
+<h3>消息声明</h3></li>
+<li><p>文件 render<em>messages</em>internal.h</p></li>
+</ul>
+
+<pre data-language="csharp">
+IPC_MESSAGE_ROUTED2(ViewHostMsg_MyMessage, GURL, int)
+IPC_MESSAGE_CONTROL0(ViewMsg_MyMessage)
+</pre>
+
+<ul>
+<li>参数太多则可以使用结构体包装
+<h3&gt;发送消息</h3&gt;</li>
+</ul>
+
+<pre data-language="csharp">
+Send(new ViewMsg_StopFinding(routing-id));
+</pre>
+
+<h3>处理消息</h3>
+
+<pre data-language="csharp">
+MyClass::OnMessageReceived(const IPC::Message& message) {
+  IPC_BEGIN_MESSAGE_MAP(MyClass, message)
+    // Will call OnMyMessage with the message. The parameters of the message will be unpacked for you.
+    IPC_MESSAGE_HANDLER(ViewHostMsg_MyMessage, OnMyMessage)  
+    ...
+    IPC_MESSAGE_UNHANDLED_ERROR()  // This will throw an exception for unhandled messages.
+  IPC_END_MESSAGE_MAP()
+}
+
+// This function will be called with the parameters extracted from the ViewHostMsg_MyMessage message.
+MyClass::OnMyMessage(const GURL& url, int something) {
+  ...
+}
+</pre>
+
+<h2>同步消息</h2>
+
+<p>IPC::SyncMessage 阻塞进程直到返回</p>
+
+<pre data-language="csharp">
+/* 声明 */
+IPC_SYNC_MESSAGE_CONTROL2_1(SomeMessage,  // Message name
+                            GURL, //input_param1
+                            int, //input_param2
+                            std::string); //result
+/* 处理 */
+IPC_MESSAGE_HANDLER(MyMessage, OnMyMessage)
+to the OnMessageReceived function, and write:
+void RenderProcessHost::OnMyMessage(GURL input_param, std::string* result) {
+  *result = input_param.spec() + " is not available";
+}
+</pre>
+
+#html

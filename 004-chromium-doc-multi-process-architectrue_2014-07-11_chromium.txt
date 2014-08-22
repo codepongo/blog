@@ -1,0 +1,42 @@
+<h1>chromium多进程架构-笔记</h1>
+
+<p><a href="http://dev.chromium.org/developers/design-documents/multi-process-architecture">原文multi-process</a></p>
+
+<h2>需求</h2>
+
+<p>浏览器绝不可能不崩溃，也没有绝对的安全。 所以，为了像现代操作系统一样具有更强的鲁棒性，chromium采取多进程架构。</p>
+
+<h2>进程</h2>
+
+<ul>
+<li>browser为主进程用于UI，管理tab页和插件进程。</li>
+<li>render为tab-specific进程用webkit(开源布局引擎)解释和布局HTML。</li>
+<li>browser为render的父进程</li>
+<li>进程间采用Chromium's IPC system通信
+<h3&gt;通信</h3&gt;</li>
+</ul>
+
+<pre data-language="csharp">
++---------------browser--------------+ +----------render------------+
+|RenderProcessHost+---RenderViewHost-|-|-RenderView--+-RenderProcess|
+|                  \                 | |            /               |
+|                   +-RenderViewHost-|-|-RenderView/                |
+|                                    | +----------------------------+
+|                                    | + ----------render-----------+
+|RenderProcessHost----RenderViewHost-|-|-RenderView---RenderProcess |
++------------------------------------+ +----------------------------+
+</pre>
+
+<ul>
+<li>browser拥有多个RenderProcessHost用于保存状态和与render进行通信。</li>
+<li>每个render进程拥有一个RenderProcess用于保存状态和与browser进程进行中相应的RenderProcessHost通信。</li>
+<li>每个render进程有一个或多个RenderView，每个RenderView相当于一个tab。在同一个render中
+view被给予一个唯一的ID用于与其他view进行区别，但是对于browser，view的ID并不唯一。</li>
+<li>每个RenderView通过其render对应的RenderProcessHost和ID与browser进行通信</li>
+<li>多tab或windows共享一个进程，如javascript的window.open打开一个新窗口需要同步操作。</li>
+<li>browser监控render，对于render崩溃和异常进行容错处理</li>
+<li>webkit运行于多进程模型中，可以严格限制对系统资源的访问。例如访问网络通过父进程，通过操作系统内置权限限制对文件系统的访问。</li>
+<li>tab不显示的时候，browser可以回收其内存</li>
+</ul>
+
+#html
