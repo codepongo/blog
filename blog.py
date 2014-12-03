@@ -859,7 +859,7 @@ def renderHtmlHeader(title=None, links=[]):
     print '<a href="%s">%s</a>|' % (baseurl, l_home)
     print '</li>'
     print '<li>'
-    print '<a href="%s">%s</a>|' % (baseurl+'/application/', l_application)
+    print '<a href="%s">%s</a>|' % ('http://app.codepongo.com', l_application)
     print '</li>'
     print '<li>'
     print '<a href="%s">%s</a>|' % ('http://news.codepongo.com', l_news)
