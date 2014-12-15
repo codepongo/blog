@@ -1379,43 +1379,43 @@ def renderFeed(entries, path, categorieslist):
     print "</channel>"
     print "</rss>"
 
-def renderResume():
-    renderHtmlHeader("resume")
-    print "<div id=\"content3\">"
-    text = open(datadir+os.sep+'resume.txt').readlines()
-    for line in text:
-        print line
-    print "</div>" # content3
-    renderHtmlFooter()
-    return
-
-def renderResumeCheck():
-    renderHtmlHeader("resume")
-    print "<div id=\"content3\">"
-    print "<form action=\"%s/resume\" method=\"post\" id=\"deleteform\">" % (baseurl)
-    print "<p><label for=\"password\"><small>%s</small></label>" % l_what_is_my_name
-    print "<p><input type=\"password\" name=\"password\" id=\"password\" size=\"22\" tabindex=\"1\" />"
-    print "<p><input name=\"submit\" type=\"submit\" id=\"submit\" tabindex=\"5\" value=\"%s\" />" % (l_submit)
-    print "</p></form>"
-    print "</div>" # content3
-    renderHtmlFooter()
-    return
-
-def renderWhatsMyUserAgent():
-    renderHtmlHeader("what's my user-agent?")
-    if os.environ.has_key('HTTP_USER_AGENT'):
-        print '<div id="content3">'
-        print os.environ['HTTP_USER_AGENT']
-        print '</div>' # content3
-    renderHtmlFooter()
-def renderAboutMe():
-    renderHtmlHeader('about me')
-    print "<div id=\"content3\">"
-    text = open(datadir+os.sep+'aboutme.txt').readlines()
-    for line in text:
-        print line
-    print "</div>" # content3
-    renderHtmlFooter()
+#def renderResume():
+#    renderHtmlHeader("resume")
+#    print "<div id=\"content3\">"
+#    text = open(datadir+os.sep+'resume.txt').readlines()
+#    for line in text:
+#        print line
+#    print "</div>" # content3
+#    renderHtmlFooter()
+#    return
+#
+#def renderResumeCheck():
+#    renderHtmlHeader("resume")
+#    print "<div id=\"content3\">"
+#    print "<form action=\"%s/resume\" method=\"post\" id=\"deleteform\">" % (baseurl)
+#    print "<p><label for=\"password\"><small>%s</small></label>" % l_what_is_my_name
+#    print "<p><input type=\"password\" name=\"password\" id=\"password\" size=\"22\" tabindex=\"1\" />"
+#    print "<p><input name=\"submit\" type=\"submit\" id=\"submit\" tabindex=\"5\" value=\"%s\" />" % (l_submit)
+#    print "</p></form>"
+#    print "</div>" # content3
+#    renderHtmlFooter()
+#    return
+#
+#def renderWhatsMyUserAgent():
+#    renderHtmlHeader("what's my user-agent?")
+#    if os.environ.has_key('HTTP_USER_AGENT'):
+#        print '<div id="content3">'
+#        print os.environ['HTTP_USER_AGENT']
+#        print '</div>' # content3
+#    renderHtmlFooter()
+##def renderAboutMe():
+#    renderHtmlHeader('about me')
+#    print "<div id=\"content3\">"
+#    text = open(datadir+os.sep+'aboutme.txt').readlines()
+#    for line in text:
+#        print line
+#    print "</div>" # content3
+#    renderHtmlFooter()
 
 def generateShortUrlIndex(filelist):
     # Pickle the shorturl index
@@ -1652,19 +1652,25 @@ def main():
         captchadb.close()
         return renderCaptcha(data)
     elif len(path) == 1 and path[0] == 'aboutme':
-        return renderAboutMe()
+        print 'Location: http://me.codepongo.com\n'
+        return
+#        return renderAboutMe()
     elif len(path) == 1 and path[0] == 'whatsmyuseragent':
-        return renderWhatsMyUserAgent()
+        print 'Location: http://app.codepongo.com/whatsmyuseragent\n'
+        return
+#        return renderWhatsMyUserAgent()
     elif len(path) == 1 and path[0] == 'resume':
-        if querystr[0] == 'check':
-            return renderResumeCheck()
-        else:
-            fs = cgi.FieldStorage(keep_blank_values=1)
-            password = fs.getvalue('password')
-            if password == resume_password:
-                return renderResume()
-            else:
-                return renderResumeCheck()
+        print 'Location: http://me.codepongo.com/resume\n'
+        return
+#        if querystr[0] == 'check':
+#            return renderResumeCheck()
+#        else:
+#            fs = cgi.FieldStorage(keep_blank_values=1)
+#            password = fs.getvalue('password')
+#            if password == resume_password:
+#                return renderResume()
+#            else:
+#                return renderResumeCheck()
     #http://codepongo.com/blog/xxx
     elif len(path) == 1:
         try:
