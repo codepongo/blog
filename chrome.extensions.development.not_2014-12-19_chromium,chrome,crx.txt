@@ -1,0 +1,113 @@
+<h1>Chrome扩展学习笔记</h1>
+
+<p><a href="http://www.ituring.com.cn/minibook/950">Chrome扩展及应用开发</a></p>
+
+<h2>include<em>globs/exclude</em>globs</h2>
+
+<ul>
+<li>可选的</li>
+<li>由于matches是必须选的，所以只能用来限制matches匹配的页面</li>
+<li>通配符?匹配任意单个字符，比matches语法灵活</li>
+</ul>
+
+<p><a href="http://open.chrome.360.cn/extension_dev/content_scripts.html#include-exclude-globs">参考</a></p>
+
+<h2>JavaScript getAttribute() 和 setAttribute()</h2>
+
+<pre data-language="javascript">
+object.getAttribute("attribute")
+object.setAttribute("attribute","value");
+</pre>
+
+<p><a href="http://www.cnblogs.com/sunky/articles/2322734.html">参考</a></p>
+
+<h2>event_page.js</h2>
+
+<p><a href="http://hyjk2000.github.io/2013/06/18/use-event-pages-in-chrome-extension/">参考</a></p>
+
+<h2>unlimitedStorage</h2>
+
+<p>提供一个用于存储HTML5的客户端的数据，如数据库和本地存储的文件，不设限额。如果没有这个权限，扩展限制为5MB本地存储空间。</p>
+
+<pre data-language="javascript">
+{
+    "manifest_version":2,
+    "name":"crx",
+    "description:"chrome extension",
+    "version":"0.0.0",
+    "permissions":["unlimitedStorage"]
+}
+</pre>
+
+<p><strong>关闭网页后，chrome.storage.StorageArea.get存储的数据不被清除。</strong></p>
+
+<h2>desktop notify demo</h2>
+
+<p>popup和background都没有webkitNotifications。</p>
+
+<p><a href="http://src.chromium.org/chrome/trunk/src/chrome/common/extensions/docs/examples/">chrome offical notification example</a></p>
+
+<h2>chrome.tabs.sendMessage 不指定tabId</h2>
+
+<p><strong>有多个extension使用了chrome<em>url</em>overrides 最后安装的extension起作用</strong></p>
+
+<h2>chrome app启动</h2>
+
+<ul>
+<li>chrome.exe  --profile-directory=Default --app-id=</li>
+<li>chrome://apps/</li>
+</ul>
+
+<h2>filesystem</h2>
+
+<ul>
+<li>chooseEntry</li>
+<li>Entry</li>
+<li>FileEntry</li>
+<li>DirectoryEntry</li>
+<li>FileWriter </li>
+<li>FileReader</li>
+<li>DirectoryReader</li>
+</ul>
+
+<pre>
+   chooseEntry
+        |
+      create
+        |
+        V
+      Entry
+        | 
+       derive
+        /\
+       /  +---------------------+
+      /                         |
+ FileEntry                 DirectoryEntry
+    |                           |  
+    +                           |
+   /  \                  +------+-------+--------------+ 
+create contain-file-+    |      |       |              |
+  |                 |   create getFile getDirectory  removeRecursively
+FileWriter   FileReader  |
+                  DirectoryReader
+</pre>
+
+<h2>JavaScript apply()</h2>
+
+<p>Function.apply(obj,args)方法能接收两个参数
+    obj：这个对象将代替Function类里this对象
+    args：这个是数组，它将作为参数传给Function（args-->arguments）</p>
+
+<p><a href="http://www.cnblogs.com/delin/archive/2010/06/17/1759695.html">参考</a></p>
+
+<h2>文字转语音</h2>
+
+<p><a href="https://github.com/codepongo/loudspeaker">loudspeaker</a></p>
+
+<h2>参考资料</h2>
+
+<p><a href="http://open.chrome.360.cn/extension_dev/overview.html">360 chrome extension development documents</a>
+<a href="https://lmk123.duapp.com/extensions/index">crxdoczh镜像</a>
+<a href="http://src.chromium.org/chrome/trunk/src/chrome/common/extensions/docs/examples/">crx samples</a></p>
+
+#html
