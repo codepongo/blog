@@ -1644,10 +1644,13 @@ def main():
     elif len(path) == 1 and path[0] == 'captcha':
         captchadb = dbhash.open(os.path.join(indexdir,'captcha.db'), 'c')
         for k in captchadb.keys():
-            if querystr[0] != '' and float(querystr[0]) - float(3600) > float(k):
+            #visit http://codepongo.com/blog/capture 
+            #without query string makes the dierty data 
+            if k == '':
+                captchadb.pop(k)
+            elif querystr[0] != '' and float(querystr[0]) - float(3600) > float(k):
                 captchadb.pop(k)
         captchadb[querystr[0]],data = mkCaptcha()
-
         captchadb.sync()
         captchadb.close()
         return renderCaptcha(data)
