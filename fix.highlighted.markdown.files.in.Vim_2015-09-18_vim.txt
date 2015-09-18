@@ -1,0 +1,32 @@
+<h1>fix highlighted markdown files in Vim</h1>
+
+<ul>
+<li>syntax files loading procedurce
+<ul>
+<li>1 $VIM/vimfiles/syntax/type.vim (~/.vim/syntax/type.vim)</li>
+<li>2 $VIMRUNTIME/syntax/type.vim</li>
+<li>3 $VIM/vimfiles/after/syntax/type.vim (~/.vim/after/syntax/type.vim)</li>
+</ul></li>
+</ul>
+
+<p><strong>create markdown.vim in after/syntax</strong></p>
+
+<ul>
+<li>priority
+When several syntax items may match, these rules are used:
+<ul>
+<li>1 When multiple Match or Region items start in the same position, the item defined last has priority.</li>
+<li>2 A Keyword has priority over Match and Region items.</li>
+<li>3 An item that starts in an earlier position has priority over items that start in later positions.</li>
+</ul></li>
+</ul>
+
+<pre data-language="python">
+syn region markdownItalic start="\S\@<=\*\|\*\S\@=" end="" keepend contains=markdownLineStart
+syn region markdownItalic start="\S\@<=_\|_\S\@=" end="" keepend contains=markdownLineStart
+
+</pre>
+
+<p><strong>in markdown.vim, add two lines above.</strong></p>
+
+#html
