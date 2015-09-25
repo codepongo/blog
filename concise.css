@@ -38,10 +38,13 @@ body {
 }
 
 #content3 {
-	margin-top: 10px;
+	margin-top: 20px;
 	margin-bottom: 10px;
 	padding:20px;
 	line-height: 120%
+}
+#content3 h1 {
+	font-size: small;
 }
 
 #sidebar {
@@ -62,8 +65,29 @@ body {
 	background-image:url(/concise_banner.png);
 	background-repeat:no-repeat;
 	height:119px;
+	font-size:2em;
+	font-weight:bold;
 }
 
+.sidebar-title {
+	margin-top:10px;
+	margin-bottom:10px;
+	font-size:1.5em;
+	font-weight:bold;
+}
+
+.subpage-title {
+	margin-top:10px;
+	margin-bottom:20px;
+	font-size:2em;
+	font-weight:bold;
+}
+.comment-section {
+	margin-top:10px;
+	margin-bottom:10px;
+	font-size:1.3em;
+	font-weight:bold;
+}
 a:link,
 a:visited {
 	text-decoration: none;
@@ -72,17 +96,14 @@ a:visited {
 h1 a:link,
 h1 a:visited {
 	border-bottom: none;
+	font-size:1em;
 }
 
-h2 {
-}
 
 h2 a:link,
 h2 a:visited {
 }
 
-h3 {
-}
 
 a:hover {
 }
@@ -113,8 +134,20 @@ pre {
 	text-decoration: none;
 }
 
-h1,
-h2,
+h1 {
+	padding:0;
+	margin:0;
+}
+h2 {
+	padding:0;
+	margin-left:1em;
+}
+
+h3 {
+	padding:0;
+	margin-left:2em;
+}
+
 div {
 	padding:0;
 	margin:0;

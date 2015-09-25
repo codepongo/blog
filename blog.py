@@ -850,7 +850,7 @@ def renderHtmlHeader(title=None, links=[]):
     print '<body>'
     print "<div id=\"content1\">"
     print "<div id=\"header\">"
-    print "<h1><a href=\"%s\">%s</a></h1>" % (baseurl, blogname)
+    print "<a href=\"%s\">%s</a>" % (baseurl, blogname)
     print "<div id=\"slogan\">%s</div>" % slogan
     print "</div>" #header
     print '<div id="nav">'
@@ -952,7 +952,7 @@ def renderCategories(catelist, ent, path):
             sortedcat.sort(key=locale.strxfrm)
         except: # python < 2.4 fails
             sortedcat.sort()
-        print "<h2>%s</h2>" % l_categories
+        print '<div class="subpage-title">%s</div>' % l_categories
         print "<ul>"
 
         for cat in sortedcat:
@@ -964,7 +964,7 @@ def renderCategories(catelist, ent, path):
 
         print "</ul>"
     elif len(path) == 2 and path[1] in catelist.keys():
-            print "<h2>%s</h2>" % path[1]
+            print '<div class="subpage-title">%s</div>' % path[1]
             renderEntryLinks(ent.getMany(-1, path[1]))
 
     print "</div>" # content3
@@ -977,7 +977,7 @@ def renderArchive(ent):
     renderHtmlHeader(l_archives)
     print "<div id=\"content3\">"
 
-    print "<h2>%s (%d)</h2>" % (l_archives, len(entries))
+    print '<div class="subpage-title">%s (%d)</div>' % (l_archives, len(entries))
     print "<ul>"
     renderEntryLinks(entries)
     print "</ul>"
@@ -1074,13 +1074,13 @@ def renderDeleteComments(entry, commentnum):
     return
 
 def renderAdvert():
-    print "<h2>%s</h2>" % l_advert
+    print '<div class="TitleLevel2">%s</div>' % l_advert
     print "<br />"
     print google_adsense_script
     print "<br />"
 
 def renderSidebarDonate():
-    print "<h2>%s</h2>" % l_donate
+    print '<div class="sidebar-title">%s</div>' % l_donate
     print '<img width="128" height="128" src="/alipay.png" />'
     print "<br />"
     print """\
@@ -1096,7 +1096,7 @@ def renderSidebarCategories(catelist, rss_categories):
         categories.sort(key=locale.strxfrm)
     except: # python < 2.4 fails
         categories.sort()
-    print "<h2><a href=\"%s/categories\">%s</a></h2>" % (baseurl, l_categories)
+    print '<div class="sidebar-title"><a href="%s/categories">%s</a></div>' % (baseurl, l_categories)
 
     hide_cat_str = ""
     topcategories = list()
@@ -1124,7 +1124,7 @@ def renderSidebarCategories(catelist, rss_categories):
     print "</ul>"
 
 def renderSidebarSearch():
-    print "<h2>%s</h2>" % l_search
+    print '<div class="sidebar-title">%s</div>' % l_search
     print "<form action=\"%s\" method=\"get\" id=\"searchform\">" % baseurl
     print "<input type=\"text\" name=\"search\" id=\"search\" size=\"15\" /><br />"
     print "<input type=\"submit\" value=\"%s\" />" % l_search
@@ -1132,7 +1132,7 @@ def renderSidebarSearch():
 
 def renderSidebarCommments():
     if sidebarcomments:
-        print "<h2>%s</h2>" % l_recent_comments
+        print '<div class="sidebar-title">%s</div>' % l_recent_comments
         comlist = getCommentList()
         if len(comlist) == 0:
             print l_no_comments_yet
@@ -1150,7 +1150,7 @@ def renderSidebarCommments():
             print "</ul>"
 
 def renderSidebarArchive(arclist):
-    print "<h2><a href=\"%s/archive\">%s</a> (%d)</h2>" % \
+    print '<div class="sidebar-title"><a href="%s/archive">%s</a> (%d)</div>' % \
         (baseurl, l_archives,
          # total number of entries
          sum([len(l) for l in [i for i in arclist.itervalues()]]))
@@ -1188,7 +1188,7 @@ def renderSidebarArchive(arclist):
 
 def renderSidebarAdmin(entries):
     if len(entries) == 1:
-        print "<h2>%s</h2>" % l_admin
+        print '<div class="sidebar-title">%s</div>' % l_admin
         print "<ul>"
         print "<li><a href=\"%s/%s/?admin\" rel=\"nofollow\">%s</a>" % \
             (baseurl,
@@ -1225,7 +1225,7 @@ def renderHtml(entries, path, catelist, arclist, admin, page):
     renderHtmlHeader(title, rss)
     print "<div id=\"content2\">"
     for entry in entries:
-        print "<h2><a href=\"%s\">%s</a></h2>" % (
+        print "<a href=\"%s\">%s</a>" % (
             entry.url,
             entry.headline)
         print "<div class=\"post\">"
@@ -1263,16 +1263,16 @@ def renderHtml(entries, path, catelist, arclist, admin, page):
         if len(entries) == 1:
             numofcomment = 0
             if len(entry.comments) > 0 and maxcomments > -1:
-                print "<h3><a name=\"comments\"></a>%s</h3>" % l_comments
+                print '<div class="TitleLevel3"><a name="comments"></a>%s</div>' % l_comments
                 print "<ol style=\"list-style-type:none;\">"
                 for comment in entry.comments:
                     numofcomment = numofcomment +1
                     renderComment(entry, comment, numofcomment, admin)
                 print "</ol>"
             if maxcomments == -1 or len(entry.comments) >= maxcomments:
-                print "<h3>%s</h3>" % l_no_comments_allowed
+                print '<div class="TitleLevel3">%s</div>' % l_no_comments_allowed
             else:
-                print "<h3><a name=\"leave_acomment\"></a>%s</h3>" % l_leave_reply
+                print '<div class="TitleLevel3"><a name="leave_acomment"></a>%s</div>' % l_leave_reply
                 print "<form action=\"%s/%s/?postcomment\" method=\"post\"" % (
                     baseurl,
                     entry.fileName[:-4])
