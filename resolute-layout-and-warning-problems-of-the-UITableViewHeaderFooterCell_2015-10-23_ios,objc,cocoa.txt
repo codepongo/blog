@@ -1,0 +1,17 @@
+<h1>Resolute the Layout and Warnning Problems of UITableViewHeaderFooterCell</h1>
+
+<h2>解决UITableVIewHeaderCell的布局和警告问题</h2>
+
+<p>in the custom UITableViewHeaderFooterCell, the width of the reuse view can not 
+be configed in a right way. And there is a warnning 
+'Setting the background color on UITableViewHeaderFooterView has been deprecated. Please use contentView.backgroundColor instead.'
+during the running.</p>
+
+<p>the reason that the view that is added to xib is UITableViewCell. instead of <strong>UICollectionReusableView</strong>, the problems are fixed.</p>
+
+<p>在定制UITableView的section的Footer时，重用的模板view不能正确的布局，width总不能正确匹配并且
+程序运行时，总是出现'Setting the background color on UITableViewHeaderFooterView has been deprecated. Please use contentView.backgroundColor instead.'的警告。</p>
+
+<p>原因是，在向xib添加view时，使用的是UITableViewCell，用UICollectionReusableView替换即可可解决问题。</p>
+
+#html
