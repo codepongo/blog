@@ -38,7 +38,7 @@ import random
 import zlib
 import logging
 import sys
-import dbhash
+import anydbm
 # kludge to get md5 hexdigest working on all python versions. Function
 # md5fun should be used only to get ascii like this
 # md5fun("kukkaisvoima").hexdigest()
@@ -527,7 +527,7 @@ def handleIncomingComment(fs):
         return None
     if nospam != nospamanswer: # wrong answer
         return None
-    captchadb = dbhash.open(os.path.join(indexdir,'captcha.db'), 'c')
+    captchadb = anydbm.open(os.path.join(indexdir,'captcha.db'), 'c')
     if ''.join(captchadb[timestamp]) != captcha:
         captchadb.pop(timestamp)
         captchadb.close()
@@ -1590,7 +1590,6 @@ def main():
         page = 0
 
     ent = Entries(indexdir)
-
     #http://codepongo.com/blog/archive
     if len(path) == 1 and path[0] == "archive":
         return renderArchive(ent)
@@ -1642,7 +1641,7 @@ def main():
         unsubscribeComments(filename, unsubscribe_id)
         print 'Location: %s/%s#comments\n' % (baseurl, name)
     elif len(path) == 1 and path[0] == 'captcha':
-        captchadb = dbhash.open(os.path.join(indexdir,'captcha.db'), 'c')
+        captchadb = anydbm.open(os.path.join(indexdir,'captcha.db'), 'c')
         for k in captchadb.keys():
             #visit http://codepongo.com/blog/capture 
             #without query string makes the dierty data 

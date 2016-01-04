@@ -19,7 +19,7 @@ class RequestHandler(CGIHTTPServer.CGIHTTPRequestHandler):
         else:
             script = o.path
             rest = ''
-        if o.query != '':
+        if o.query != '' and sys.platform != 'darwin':
             query = '?' + o.query
             rest = rest + '?' + o.query
         if os.path.isfile(script[1:]):
@@ -81,6 +81,8 @@ class RequestHandler(CGIHTTPServer.CGIHTTPRequestHandler):
                 rest = script + rest
             else:
                 query = query.split('?')[0]
+        if sys.platform == 'darwin':
+            rest = rest.replace('blog.py/', '')
         uqrest = urllib.unquote(rest)
         env['PATH_INFO'] = '/'+uqrest
         env['PATH_TRANSLATED'] = self.translate_path(uqrest)
