@@ -1225,16 +1225,15 @@ def renderHtml(entries, path, catelist, arclist, admin, page):
     renderHtmlHeader(title, rss)
     print "<div id=\"content2\">"
     for entry in entries:
+        print "<div class=\"post\">"
         print "<a href=\"%s\">%s</a>" % (
             entry.url,
             entry.headline)
-        print "<div class=\"post\">"
         for line in entry.getText(summary):
             if entry.filetype != 'html':
                 print line.replace('&', '&amp;').replace(' ', '&nbsp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace('\n', '<br />')
             else:
                 print line
-        print "</div>"
 
         if len(entries) > 1 and maxcomments > -1:
             nc = len(entry.comments)
@@ -1259,6 +1258,7 @@ def renderHtml(entries, path, catelist, arclist, admin, page):
         print "<div class=\"date\">%s: %s</div>" % \
             (l_date, dateToString(entry.date))
 
+        print "</div>"
         # comments
         if len(entries) == 1:
             numofcomment = 0
