@@ -1,0 +1,7 @@
+﻿<h1>Special Keys on Mac Keyboard</h1>
+
+<h2>Mac键盘上特殊功能键的说明</h2>
+
+<p><img src="/mackeys.png" alt="mackeys.png" /></p>
+
+#html
