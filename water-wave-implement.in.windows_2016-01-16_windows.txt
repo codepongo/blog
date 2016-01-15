@@ -15,7 +15,7 @@ y = a * cos(x * b)
 <h2>源代码</h2>
 
 <ul>
-<li>源码地址:<a href="https://raw.githubusercontent.com/codepongo/utocode/master/windows/cpuusage.cpp">waterwave.cpp</a></li>
+<li>源码地址:<a href="https://raw.githubusercontent.com/codepongo/utocode/master/windows/waterwave.cpp">waterwave.cpp</a></li>
 <li>编译</li>
 </ul>
 

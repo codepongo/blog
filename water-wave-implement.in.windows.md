@@ -11,7 +11,7 @@ y = a * cos(x * b)
 
 
 ## 源代码 ##
-* 源码地址:[waterwave.cpp](https://raw.githubusercontent.com/codepongo/utocode/master/windows/cpuusage.cpp)
+* 源码地址:[waterwave.cpp](https://raw.githubusercontent.com/codepongo/utocode/master/windows/watewave.cpp)
 * 编译
 <pre>
 Setting environment for using Microsoft Visual Studio 2008 x86 tools.
