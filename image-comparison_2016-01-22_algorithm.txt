@@ -1,0 +1,62 @@
+<h1>图像比较</h1>
+
+<h2>感知哈希 Perceptual Hash</h2>
+
+<ul>
+<li>缩小图像</li>
+<li>灰度化处理</li>
+<li>二值化处理</li>
+<li>产生图像指纹</li>
+</ul>
+
+<p>特点：速度快，算法简单，但无法匹配变换（如，旋转等）后的图像。</p>
+
+<p><a href="http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html">感知哈希算法的详细描述</a></p>
+
+<p><a href="http://phash.org/">感知哈希开源库：pHash</a></p>
+
+<p><a href="http://www.hackerfactor.com/blog/index.php?/archives/529-Kind-of-Like-That.html">感知哈希的另一种实现：dhash</a></p>
+
+<h2>基于特征点比较 Keypoint Matching</h2>
+
+<ul>
+<li>生成一系列特征区域</li>
+<li>对特征区域进行处理产生特征点</li>
+<li>对特征点进行比较，得出结果</li>
+</ul>
+
+<p>特点：标准的图像配准算法，可用于图像匹配，健全性强，计算速度较慢，涉及很多数学知识（本人数学基础巨差，完全看不懂）</p>
+
+<p>代表算法: <strong>sirf</strong>, <strong>surf</strong></p>
+
+<h2>直方图匹配 Histogram method</h2>
+
+<ul>
+<li>生成多个直方图</li>
+<li>比较直方图，得出图像近似度</li>
+</ul>
+
+<p>特点：速度较快，健全性不强，可以通过产生特殊的直方图兼容图像变换</p>
+
+<h2>特征点匹配结合决策树 Keypoint and Decision Trees</h2>
+
+<p>特征匹配与机器学习相结合</p>
+
+<p>特点：速度快，健全性强，但算法实现复杂</p>
+
+<h2>参考</h2>
+
+<p><a href="http://www.cnblogs.com/technology/archive/2012/07/12/Perceptual-Hash-Algorithm.html">感知哈希算法——找出相似的图片</a></p>
+
+<p><a href="http://www.hackerfactor.com/">Dr. Neal Krawetz' Blog</a></p>
+
+<p><a href="http://stackoverflow.com/questions/843972/image-comparison-fast-algorithm">Image comparison - fast algorithm - Stack Overflow</a></p>
+
+<p><a href="http://www.codeproject.com/Articles/374386/Simple-image-comparison-in-NET">Simple image comparison in .NET</a></p>
+
+<p><a href="http://blog.csdn.net/zddblog/article/details/7521424">SIFT算法详解</a></p>
+
+<p><a href="http://www.cnblogs.com/cfantaisie/archive/2011/06/14/2080917.html">SIFT 特征提取算法总结</a>
+<a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/17/2644903.html">特征点检测学习_surf算法</a></p>
+
+#html
