@@ -69,5 +69,7 @@
 
 
 [SIFT 特征提取算法总结](http://www.cnblogs.com/cfantaisie/archive/2011/06/14/2080917.html)
+
+
 [特征点检测学习_surf算法](http://www.cnblogs.com/tornadomeet/archive/2012/08/17/2644903.html)
 

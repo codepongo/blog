@@ -56,7 +56,8 @@
 
 <p><a href="http://blog.csdn.net/zddblog/article/details/7521424">SIFT算法详解</a></p>
 
-<p><a href="http://www.cnblogs.com/cfantaisie/archive/2011/06/14/2080917.html">SIFT 特征提取算法总结</a>
-<a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/17/2644903.html">特征点检测学习_surf算法</a></p>
+<p><a href="http://www.cnblogs.com/cfantaisie/archive/2011/06/14/2080917.html">SIFT 特征提取算法总结</a></p>
+
+<p><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/17/2644903.html">特征点检测学习_surf算法</a></p>
 
 #html
