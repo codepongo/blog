@@ -1,0 +1,21 @@
+<h1>ffmpeg usage ffmpeg用法</h1>
+
+<p>2014-11-10</p>
+
+<h1>提取音频</h1>
+
+<pre>
+ffmpeg -i input -vn output.mp3
+</pre>
+
+<p>-vn 不需要视频 no video</p>
+
+<h1>压缩</h1>
+
+<pre>
+ffmpeg -i input -acodec copy -vcodec copy -s 800x600 output
+</pre>
+
+<p>-s scale 压缩后大小</p>
+
+#html
