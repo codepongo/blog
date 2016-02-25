@@ -135,7 +135,10 @@ class RequestHandler(CGIHTTPServer.CGIHTTPRequestHandler):
                   'HTTP_USER_AGENT', 'HTTP_COOKIE', 'HTTP_REFERER'):
             env.setdefault(k, "")
 
-        self.send_response(200, "Script output follows")
+        if self.command.lower() == 'post':
+            self.send_response(303, 'redirection')
+        else:
+            self.send_response(200, "Script output follows")
 
         decoded_query = query.replace('+', ' ')
 
@@ -168,6 +171,7 @@ class RequestHandler(CGIHTTPServer.CGIHTTPRequestHandler):
                 os.dup2(self.rfile.fileno(), 0)
                 os.dup2(self.wfile.fileno(), 1)
                 os.execve(scriptfile, args, env)
+
             except:
                 self.server.handle_error(self.request, self.client_address)
                 os._exit(127)
