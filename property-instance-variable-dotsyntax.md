@@ -1,0 +1,37 @@
+ @property ivar and dotsyntax
+===============================
+
+* accessor method
+accessor表示两个方法，一个叫做getter用于获取，另一个叫做setter用于设置。 getter形式为 - (type)name, setter形式为-(void)setName。
+accessor method represents two method. one is getter and the other is setter.
+the method of getter defaults as ‘-(type)name and setter defaults as -(void)setName
+
+
+* @property 
+@property 生成 instance variable 和 accessor。
+@property makes instance variable (ivar) and accessor
+
+
+* @synthesize
+@synthesize与@property配对，提供将@proerty与成员变量绑定的功能，即指定@property的inistance variable为特定的成员变量。
+synthesize prepairs @property.in @synthesize the ivar can bind a class member, @syntax property-name=ivar-name
+
+
+
+* atomic
+atomic的意思是读和写是原子操作，但是线程安全要保证同时读写数据不会出错，所以atomic无法保证。本质就是在getter和setter加入一个锁，赋值或取值前锁定，结束后解除。nonatomic/atomic 原子操作，但不能保证线程安全，默认为atomic，常用为nonatomic。
+nonatomic/atomic is atomic operation. this does not gurantee the safe-thread. default value is atomic.atomic means the reading and writing are atomic each,but the safe-thread requests reading and writing in the same time do not case the problem. the atomic add the lock in getter and setter.
+
+* readonly/readwrite 
+读写或只读，本质就是生成getter和setter或者只生成getter
+readwrite makes the getter and setter and the readonly makes the only getter.
+
+* weak/strong(assgin/retaine) copy
+weak/strong in ARC, weak means assgin in setter, strong means reference count draining in setter(complite manages automatic reference count). assgin/reatin in MRC are deprecated now. copy means using copy in setter.
+weak/strong作为ARC自动引用计数时代，weak本质是setter内直接赋值，strong本质是setter时增加引用计数（引用计数由编译器，编译时增加）（assign/retain 为MRC手动引用计数时代的标志，已经被淘汰）
+copy 表示setter中使用copy方式
+
+* dotsyntax
+dotsyntax本质是转化为 getter 和 setter 
+dotsyntax means sending getter or setter message.
+
