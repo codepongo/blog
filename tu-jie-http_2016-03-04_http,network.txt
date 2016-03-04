@@ -1,0 +1,506 @@
+<h1>《图解HTTP》笔记</h1>
+
+<h2>HTTP相关协议</h2>
+
+<ul>
+<li>TCP/IP协议簇</li>
+</ul>
+
+<pre>
++-----------+
+|应用层     |HTTP数据
++-----------+
+|传输层     |IP数据报（TCP首部+HTTP数据）
++-----------+
+|网络层     |IP首部+TCP首部+HTTP数据
++-----------+
+|数据链路层 |以太网首部+IP首部+TCP首部+HTTP数据
++-----------+
+</pre>
+
+<ul>
+<li><p>TCP 分割，打上标记序号和端口号</p></li>
+<li><p>IP 增加MAC地址（因为ARP协议，在TCP/IP协议簇中是在IP层实现的,所以增加网络地址是在IP层）</p></li>
+<li><p>ARP协议 根据通信方的IP地址就可以反查出对应的MAC地址。</p></li>
+<li><p>三次握手保证数据送达目标（SYNsynchronize-SYN和ACK-ACK acknowledgement）</p></li>
+<li><p>NIC Networking Interface Card</p></li>
+<li><p>DNS 域名查IP和IP反查域名</p></li>
+</ul>
+
+<h2>URL/URI</h2>
+
+<p>协议方案名://登录信息（认证）@服务器地址:端口号/带层次的文件路径?查询字符串#片段标识符</p>
+
+<pre>
+http://user:pass@www.example.com:80/dir/index.html?uid=1#ch1
+</pre>
+
+<h2>Session/Cookie</h2>
+
+<p>HTTP/1.1 是无状态协议，为了实现保持状态功能，引入了cookie技术。</p>
+
+<p>服务器应答报文首部Set-Cookie 
+请求报文首部包含Cookie</p>
+
+<h3>GET 请求</h3>
+
+<pre>
+GET /index.html HTTP/1.1
+Host:www.example.com
+</pre>
+
+<h3>POST 请求</h3>
+
+<pre>
+POST /form/entry HTTP/1.1
+Host: www.example.com
+Connection: keep-alive
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 16
+
+name=ueno&age=37
+</pre>
+
+<h3>应答</h3>
+
+<pre>
+HTTP/1.1 200 OK
+Date: Wed, 17 Feb 2016 17:22:00 GMT
+Content-Length: 362
+Content-Type: text/html
+
+...
+</pre>
+
+<h2>请求方法 method</h2>
+
+<ul>
+<li>GET:获取资源</li>
+<li>POST 传输实体主体</li>
+<li>PUT 传输文件</li>
+<li>HEAD 获得报文首部</li>
+<li>DELETE 删除文件</li>
+<li>OPTIONS 询问支持的方法</li>
+<li>TRACE 追踪路径</li>
+<li>CONNECT 要求用隧道协议链接代理</li>
+</ul>
+
+<h2>请求格式</h2>
+
+<p>请求行   Method URI HTTP/version(CRLF)
+消息报头 head(CRLF)
+(CRLF)
+请求正文 body</p>
+
+<h2>HTTP 1.1 完善</h2>
+
+<ul>
+<li>持久性链接 Connection:Keep-Alive </li>
+<li>管线化（不用等待相应亦可直接发送下一个请求）</li>
+<li>session  保存状态</li>
+</ul>
+
+<h2>HTTP 报文 格式</h2>
+
+<ul>
+<li>分隔符CR(Carriage Return)[0x0D]LF(Line Feed)[0x0A]</li>
+<li>请求报文=报文首部（请求行+请求首部字段+通用首部字段+实体首部字段+其他[RFC里未定义的首部])+报文主体</li>
+<li>响应报文=报文首部（状态行+响应首部字段+通用首部字段+实体首部字段+其他[RFC里未定义的首部])+报文主体</li>
+</ul>
+
+<h2>编码和压缩</h2>
+
+<ul>
+<li>压缩格式：gzip(GNU zip), compress deflate(zlib), identity</li>
+<li>分块传输：Transfer-Encoding:chunked。每一块都会用16进制来标记块的大小，最后一块使用"0(CRLF)"标记</li>
+</ul>
+
+<pre>
+...
+Transfer-Encoding:chunked
+
+
+cf0
+
+...0xcf0(3312)字节分块数据...
+
+
+392
+
+...0x392(914)字节分块数据...
+
+
+0
+</pre>
+
+<h2>复合数据</h2>
+
+<p>MIME(Multipurpose Internet Mail Extensions)</p>
+
+<h3>multipart/form-data</h3>
+
+<pre>
+Content-Type:multipart/form-data;boundary=AaB03x
+
+--AaB03x
+Content-Disposition:form-data;name="field1"
+
+Joe Blow
+--AaB03x
+Content-Disposition:form-data;name="pics";filename="file1.txt"
+Content-Type:text/plain
+
+...(file1.txt的数据)...
+--AaB03x--
+</pre>
+
+<h3>multipart/byteranges</h3>
+
+<pre>
+HTTP/1.1 206 Partial Content
+Date:Fri, 13 Jul 2012 02:45:26 GMT
+Last-Modified:Fri, 31 Aug 2007 02:02:20 GMT
+Content-Type:multipart/byteranges; boundary=THIS_STRING_SEPARATES
+
+--THIS_STRING_SEPARATES
+Content-Type:application/pdf
+Content-Range:bytes 500-999/8000
+
+...(范围指定的数据)...
+--THIS_STRING_SEPARATES
+Content-Type:application/pdf
+Content-Range:bytes 7000-7999/8000
+
+...(范围指定的数据)...
+--THIS_STRING_SEPARATES--
+</pre>
+
+<h3>范围请求</h3>
+
+<pre>
+GET /tip.jpg HTTP/1.1
+Host:www.abc.com
+Range:bytes=5001-10000
+</pre>
+
+<pre>
+HTTP/1.1 206 Partial Content
+Date:Fri, 13 Jul 2012 04:39:17 GMT
+Content-Range: bytes 5001-10000/10000
+Content-Length:5000
+Content-Type:image/jpeg
+
+...(tip.jpg内容)...
+</pre>
+
+<h2>服务器协商</h2>
+
+<p>相关首部字段
+* Accept 
+* Accept-Charset
+* Accept-Encoding
+* Accept-Language
+* Content-Language</p>
+
+<h2>HTTP状态码</h2>
+
+<ul>
+<li>1XX Informational(信息性状态码) 接收的请求正在处理</li>
+<li>2XX Success(成功状态码) 请求正常处理完毕
+<ul>
+<li>200 ok</li>
+<li>204 no content</li>
+<li>206 partial content</li>
+</ul></li>
+<li>3XX Redirection(重定向状态码) 需要进行附加操作以完成请求
+<ul>
+<li>301 moved permanently 永久重定向</li>
+<li>302 found 临时重定向</li>
+<li>303 see other 临时重定向并用GET方法获取</li>
+<li>304 not modified 允许请求但未满足条件</li>
+<li>307 temporary redirect 临时重定向禁止POST变换成GET</li>
+</ul></li>
+<li><p>4XX Client Error(客户端错误状态码) 服务器无法处理请求</p>
+
+<ul>
+<li>400 bad request</li>
+<li>401 unauthorized 第一次需要认证，第二次是认证失败</li>
+<li>403 forbidden 禁止访问</li>
+<li>404 not found</li>
+</ul></li>
+<li><p>5XX Server Error(服务器错误状态码) 服务器处理请求错误</p>
+
+<ul>
+<li>500 internal server error 服务器出错</li>
+<li>503 service unavailable 服务器维护</li>
+</ul></li>
+</ul>
+
+<p><em>浏览器实际实现中301、302、303，307都会将POST方法变成GET方法</em></p>
+
+<h2>区别单台虚拟主机实现多个域名，通过Host首部加以区分</h2>
+
+<h2>通用数据转发程序</h2>
+
+<ul>
+<li>代理:转发功能的程序，一般代理都是指客户端部分的转发程序。</li>
+<li>反向代理：服务端前置的代理叫反向代理。</li>
+<li>网关：转发其他服务器通信数据的服务器，与反向代理的区别是，网关还有协议转换的作用。即能使通信线路上的服务器提供非HTTP协议服务，而反向代理只提供HTTP服务的转发</li>
+<li>隧道：客户端与服务器之间的中转，并保持双方通信连接的程序。 </li>
+</ul>
+
+<h2>HTTP首部字段结构</h2>
+
+<p>由字段名和字段值构成，中间用冒号分隔。字段值可以由多个指令参数组成，多个指令之间由逗号分隔，指令可以有指令值（指令值为可选项，可有可无），指令和指令值用等号分隔。</p>
+
+<pre>
+Cache-Control:private, max-age=0, no-cache
+</pre>
+
+<h2>HTTP首部字段分类</h2>
+
+<h3>通用首部 General Header Fields</h3>
+
+<ul>
+<li>Cache-Control 控制缓存</li>
+<li>Connection 逐跳首部，连接管理
+<ul>
+<li>Connection:Upgrade 发送至下个服务器时，不转发Upgrade首部</li>
+<li>Connection:Close 关闭连接</li>
+</ul></li>
+<li>Date 创建报文的日期时间 GMT时间 GMT=UTC 与北京时间差8个小时</li>
+<li>Pragma 报文指令</li>
+<li>Trailer 报文末端的首部一览，报文主体后，记录了哪些首部字段多用于分块传输</li>
+<li>Transfer-Encoding 指定报文主体的传输编码方式</li>
+<li>Upgrade 升级为其他协议</li>
+<li>Via 代理服务器相关信息</li>
+<li>Warning 错误通知</li>
+</ul>
+
+<h3>请求首部 Request Header Fields</h3>
+
+<ul>
+<li>Accept 用户代理可处理的媒体类型</li>
+<li>Accept-Charset 优先的字符集</li>
+<li>Accept-Encoding 优先的内容编码</li>
+<li>Accept-Language 优先的语言（自然语言）</li>
+<li>Authorization Web认证信息</li>
+<li>Expect 期待服务器的特定性温</li>
+<li>From 用户的电子邮箱地址</li>
+<li>Host 请求资源所在服务器</li>
+<li>If-Match 比较实体标记（ETag）</li>
+<li>If-Modified-Since 比较资源的更新时间</li>
+<li>If-None-Match 比较实体标记（与If-Match相反）</li>
+<li>If-Range 资源未更新时发送实体Byte的范围请求</li>
+<li>If-Unmodified-Since 比较资源的更新时间（与If-Modified-Since相反）</li>
+<li>Max-Forwards 最大传输逐跳数</li>
+<li>Proxy-Authorization 代理服务器要求客户端的认证信息</li>
+<li>Range 实体的字节范围请求</li>
+<li>Referer 对请求中URI的原始获取方 [referer拼写错误，应为referrer]</li>
+<li>TE 传输编码的优先级</li>
+<li>User-Agent HTTP客户端程序的信息</li>
+</ul>
+
+<h3>响应首部 Response Header Fields</h3>
+
+<ul>
+<li>Accept-Ranges 是否接受字节范围请求</li>
+<li>Age 推算资源创建经过时间</li>
+<li>ETag 资源的匹配信息</li>
+<li>Location 令客户端重定向至指定URI</li>
+<li>Proxy-Authenticate 代理服务器对客户端的认证信息</li>
+<li>Retry-After 对再次发起请求的时机要求</li>
+<li>Server HTTP服务器的安装信息</li>
+<li>Vary 代理服务器缓存的管理信息</li>
+<li>WWW-Authenticate 服务器对客户端的认证信息</li>
+</ul>
+
+<h3>实体首部 Entity Header Fields</h3>
+
+<ul>
+<li>Allow 资源可支持的HTTP方法</li>
+<li>Content-Encoding 实体主体适用的编码方式</li>
+<li>Content-Language 实体主体的自然语言</li>
+<li>Content-Length 实体主体的大小（单位：字节）</li>
+<li>Content-Location 替代对应资源的URL</li>
+<li>Content-MD5 实体主体的报文摘要</li>
+<li>Content-Range 实体主体的位置范围</li>
+<li>Content-Type 实体主体的媒体类型</li>
+<li>Expires 实体主体过期的日期时间</li>
+<li>Last-Modified 资源的最后修改日期时间</li>
+</ul>
+
+<h3>其他首部（非HTTP/1.1 首部字段）</h3>
+
+<ul>
+<li><p>为cookie服务的首部</p>
+
+<ul>
+<li>Cookie</li>
+<li>Set-Cookie</li>
+</ul></li>
+<li><p>其他首部</p>
+
+<ul>
+<li>Content-Disposition</li>
+<li>X-Frame-Options</li>
+<li>X-XSS-Protection</li>
+<li>P3P</li>
+</ul></li>
+</ul>
+
+<h2>逐跳首部和端到端首部</h2>
+
+<ul>
+<li>端到端首部（End-to-end Header）: 必须转发至终端</li>
+<li>逐跳首部（Hop-by-hop Header）：仅对单次转发有效
+<ul>
+<li>Connection</li>
+<li>Keep-Alive</li>
+<li>Proxy-Authenticate </li>
+<li>Proxy-Authentication </li>
+<li>Trailer</li>
+<li>TE</li>
+<li>Transfer-Encoding</li>
+</ul></li>
+</ul>
+
+<h2>HTTPS</h2>
+
+<ul>
+<li>SSL(Secure Socket Layer)</li>
+<li>TLS(Transport Layer Security) SSL3.1</li>
+<li>HTTPS(HTTP Secure)(HTTP over SSL) = HTTP + SSL</li>
+<li>CA颁发的证书用来证明通信所用公钥的真实性和作为通信一方的服务器（也可认证客户端）是否规范。</li>
+<li>EV SSL(Extended Vailidation SSL Certificate)和自签名证书</li>
+</ul>
+
+<h3>HTTPS 通信机制</h3>
+
+<pre>
+Client                           Server          
+  |                                |
+  +---Handshake:ClientHello------->|
+  |<--Handshake:ServerHello--------+
+  |<--Handshake:Certificate--------+
+  |<--Handshake:ServerHelloDone----+
+  |                                |
+  +---Handshake:ClientKeyExchange->|
+  +---ChangeCipherSpec------------>|
+  +---HandShake:Finished---------->|
+  |                                |
+  |<--ChangeCipherSpec-------------+
+  |<--HandShake:Finished-----------+
+  |                                |
+  |---Application Data(HTTP)------>|
+  |<--Application Data(HTTP)-------+
+  |                                |
+  |                                |
+  |-=Alert:warning,close notify--->|
+
+</pre>
+
+<ul>
+<li>ClientHello: SSL版本，加密组件（Cipher Suite）列表（所使用的加密算法及密钥长度等）</li>
+<li>ServerHello: SSL版本，加密组件（Cipher Suite）列表（从客户端列表中筛选出来）</li>
+<li>Certificate: 包含公开密钥</li>
+<li>ServerHelloDone: 握手结束</li>
+<li>ClientKeyExchange:随机密码串(Pre-master secret)用公钥加密</li>
+<li>ChangeCipherSpec:提示服务器，之后通信采用通过Pre-master secret产生的密钥加密</li>
+<li>Finished:连接至今全部报文的整体校验值，握手成功与否由服务器是否能正确解密该报文作为判定标准</li>
+<li>服务器发送ClientKeyExchange提示客户端</li>
+<li>发送Finished报文，校验并判定握手是否成功</li>
+</ul>
+
+<p>SSL的慢的原因包括两方面：由于数据变大导致传输数据变多，导致通信慢和加解密的计算计算需要耗时，导致客户端和服务器的处理速度慢。</p>
+
+<h2>HTTP 认证机制</h2>
+
+<h3>BASIC</h3>
+
+<ul>
+<li>WWW-Authenticate:Basic realm="pompt"</li>
+<li>Authorization:Basic user:password Base64 encode</li>
+</ul>
+
+<h3>DIGEST</h3>
+
+<ul>
+<li>WWW-Authenticate:Digest realm="DIGEST", nonce="random string"</li>
+<li>Authorization:Digest username="user", realm="DIGEST", nonce="random string", uri="/digest/", response="password md5 hash"</li>
+<li>Authentication-Info:</li>
+</ul>
+
+<h3>基于表单认证</h3>
+
+<ul>
+<li>表单认证流程
+<ol>
+<li>POST username password</li>
+<li>Set-Cookie包含sessionid</li>
+<li>其他通信带有Cookie</li>
+</ol></li>
+</ul>
+
+<p>密码安全保存：先利用给密码加盐的方式增加额外信息，再使用散列函数计算出散列值后保存。
+加盐Salt就是由服务器随机生成一个字符串，但要保证长度足够长，并且是真正随机生成的。然后把它和密码字符串相连起来（前后都可以）生成散列值。减少密码特征，无法利用密码特征库进行破解。</p>
+
+<h2>HTTP 追加协议</h2>
+
+<ul>
+<li>Ajax:局部更新</li>
+<li>Comet:持续连接便于推送</li>
+<li>SPDY:在应用层与传输层之间加入新的会话层，使用SSL，通过单一TCP连接处理多个HTTP请求实现多路复用，提高效率</li>
+<li>WebSocket:HTTP的Upgrade: websocket字段握手并切换协议</li>
+<li>WebDAV:对web服务器上的文件直接操作，分布式文件系统。HTTP/1.1 追加方法 HTTP协议主体为XML格式
+<ul>
+<li>PROPFIND: 获取属性</li>
+<li>PROPPATCH: 修改属性</li>
+<li>MKCOL: 创建集合</li>
+<li>COPY: 复制资源及属性</li>
+<li>MOVE: 移动资源</li>
+<li>LOCK: 资源枷锁</li>
+<li>UNLOCK: 资源解锁</li>
+<li>102 Processing 正常处理请求，但目前是处理中状态</li>
+<li>207 Multi-Status 存在多种状态</li>
+<li>422 Unprocessible Entity 格式正确，内容有误</li>
+<li>423 Locked 资源已被加锁</li>
+<li>424 Failed Dependency 处理与某请求关联的请求失败，因此不再维持依赖关系</li>
+<li>507 Insufficient Storage 保存空间不足</li>
+</ul></li>
+</ul>
+
+<h2>Web 安全</h2>
+
+<ul>
+<li><p>输入输出值转义不完全引发的安全漏洞</p>
+
+<ul>
+<li>跨站脚本攻击</li>
+<li>sql注入攻击</li>
+<li>shell命令注入攻击</li>
+<li>http首部注入攻击</li>
+<li>邮件首部注入攻击</li>
+<li>目录遍历攻击</li>
+<li>远程文件包含漏洞</li>
+</ul></li>
+<li><p>设置和设计缺陷引发的安全漏洞</p>
+
+<ul>
+<li>强制浏览</li>
+<li>不正确的错误消息处理</li>
+<li>开放重定向</li>
+</ul></li>
+<li>会话引发的安全漏洞
+<ul>
+<li>会话劫持</li>
+<li>会话固定攻击</li>
+<li>跨站点请求伪造</li>
+</ul></li>
+<li>密码破解</li>
+<li>点击劫持</li>
+<li>dos攻击</li>
+<li>后门程序</li>
+</ul>
+
+#html
