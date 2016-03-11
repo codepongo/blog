@@ -285,6 +285,10 @@ window['Rainbow'] = (function() {
      */
     function _processPattern(regex, pattern, code, callback)
     {
+        if (typeof regex === "undefined" || regex === null) {
+            //console.warn("undefined regular expression")
+            return callback();
+        }
         var match = regex.exec(code);
 
         if (!match) {
@@ -624,8 +628,7 @@ window['Rainbow'] = (function() {
                 _addClass(block, 'rainbow');
 
                 return _highlightBlockForLanguage(block.innerHTML, language, function(code) {
-                    block.innerHTML = code.replace(/\n/g,'<br />');
-
+                    block.innerHTML = code;
 
                     // reset the replacement arrays
                     replacements = {};
