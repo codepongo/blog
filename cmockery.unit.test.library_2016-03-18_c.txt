@@ -1,0 +1,101 @@
+<h1>C语言 单元测试框架 —— Cmockery</h1>
+
+<p><a href="https://github.com/google/cmockery">Cmockery</a>是google开源的一套C语言单元测试框架。</p>
+
+<h2>选择原因</h2>
+
+<p>正如编写这个框架的动机，选择这个测试框架的原因在于
+<strong>兼容性好</strong> 、<strong>耦合度低</strong> 、<strong>不依赖外部库</strong> 。总得来说，就是简单！</p>
+
+<h2>功能</h2>
+
+<p>按照功能，可分为四个模块</p>
+
+<h3>test execution 测试运行模块</h3>
+
+<p>测试单元用例是以函数形式给出</p>
+
+<pre data-language="c">
+void test_function(void** state) {
+}
+</pre>
+
+<p>然后，将其添加到一个测试单元组当中，测试单元组为一个数组</p>
+
+<pre data-language="c">
+const UnitTest tests = {
+    unit_test(test_function),
+};
+</pre>
+
+<p>运行测试</p>
+
+<pre data-language="c">
+run_tests()
+</pre>
+
+<p>如果出现异常，则程序会中断测试。如果发生错误，输出相关信息后继续执行下一条单元测试用例。</p>
+
+<h3>assertion 断言</h3>
+
+<pre>
+expect_assert_failure():类似于C语言中的assert
+
+assert_{type}_equal(), assert_{type}_equal:用于检查运行结果。
+
+expect_{type}()，用于函数输入参数和测试用例的检查
+</pre>
+
+<h3>Dynamic Memory Allocation 内存泄漏检查</h3>
+
+<p>用于宏定义的方式重新定义C运行库的内存管理函数，通过在申请内存时，加入信息头记录在链表当中的方式检测内存泄漏。</p>
+
+<h3>Mock 模拟测试</h3>
+
+<ol>
+<li>重写待测试中需要进行模拟测试的函数</li>
+<li>在重写模拟测试函数中调用mock()</li>
+<li>调用函数前，先用will_return()指定，返回值</li>
+</ol>
+
+<pre data-language="C">
+//1
+int* need_to_mock() {
+    //2
+    return (int*)mock();
+}
+int* want_to_test_func() {
+    return need_to_mock();
+void test_function(void** state) {
+    //3
+    will_return(want_to_test_func, 0x2046);
+    assert_true(want_to_test_func() == 1);
+}
+int main(int, char**) {
+    const UnitTest u[] = {
+        unit_test(test_function),
+    }
+    return run_tests(u);
+}
+</pre>
+
+<h3>State 环境状态</h3>
+
+<p>通过unit_test_setup_teardonw可以在单元测试运行之前改变（预装载）和恢复环境状态（测试后卸载）。</p>
+
+<h2>Problem 存在的问题</h2>
+
+<ul>
+<li>在内存检测部分，没有对realloc函数进行处理，导致在有realloc调用的时候程序崩溃
+此问题在<a href="https://cmocka.org">cmocka</a>已被解决。</li>
+<li>free(0),释放一个空指针程序将崩溃，在test_free中加入判空操作。</li>
+</ul>
+
+<p><a href="https://github.com/codepongo/cmockery">this is my fork that fixes those problems above</a></p>
+
+<h2>reference</h2>
+
+<p><a href="http://stackoverflow.com/questions/2665812/what-is-mocking">什么是mock测试</a>
+<a href="http://tonybai.com/2009/08/22/introduce-cmockery-for-c-unit-test/">用cmockery做mocking测试</a></p>
+
+#html
