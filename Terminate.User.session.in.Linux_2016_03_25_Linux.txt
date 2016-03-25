@@ -1,0 +1,35 @@
+<h1>终止用户会话 Terminate User Session</h1>
+
+<ol>
+<li>return user's terminal name</li>
+</ol>
+
+<blockquote>
+  <p>tty </p>
+</blockquote>
+
+<ol>
+<li>display who is logged in and what they are doing</li>
+</ol>
+
+<blockquote>
+  <p>w </p>
+</blockquote>
+
+<ol>
+<li>send a signal or report process status</li>
+</ol>
+
+<blockquote>
+  <p>skill -KILL -v pts/* </p>
+</blockquote>
+
+<ol>
+<li>signal processes based on name and other attributes</li>
+</ol>
+
+<blockquote>
+  <p>pkill -9 -t pts/*</p>
+</blockquote>
+
+#html
