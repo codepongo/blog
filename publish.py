@@ -12,16 +12,28 @@ def mkdir(path):
 def main():
     source = mkdir(sys.argv[1])
     data_path = mkdir(sys.argv[2])
+    if len(sys.argv) == 3:
+        img_path = mkdir(sys.argv[3])
+    else:
+        img_path = ''
     for f in os.listdir(source):
         name,ext = os.path.splitext(f)
         if ext in ['.md']:
-            shutil.copy(os.path.join(source, f), os.path.join(data_path, f))
+            des = os.path.join(data_path, f)
+            if not os.path.isfile(des):
+                shutil.copy(os.path.join(source, f), des)
         if ext in ['.txt']:
             if sys.platform == 'linux2':
                 new_name = f.replace('_', ':')
             else:
                 new_name = f
-            shutil.copy(os.path.join(source, f), os.path.join(data_path, new_name))
+            des = os.path.join(data_path, new_name)
+            if not os.path.isfile(des):
+                shutil.copy(os.path.join(source, f), des)
+        if ext in ['.png']:
+            des = os.path.join(img_path, f)
+            if img_path != '' and not os.path.isfile(des):
+                shutil.copy(os.path.join(source, f), des)
 
 if "__main__" == __name__:
     main()

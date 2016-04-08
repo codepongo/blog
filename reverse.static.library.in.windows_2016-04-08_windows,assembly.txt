@@ -1,0 +1,17 @@
+<h1>reverse static library in windows</h1>
+
+<h2>逆向windows静态库</h2>
+
+<h3>list all objs in static library 列出静态库中所有obj</h3>
+
+<p>lib staticlibrary.lib /List</p>
+
+<h3>export obj from static library 导出指定的obj</h3>
+
+<p>lib staticlibrary /EXTRACT:membername</p>
+
+<h3>disassemble obj file 反汇编obj</h3>
+
+<p>objdump -S membername.obj &gt; membername.asm</p>
+
+#html
