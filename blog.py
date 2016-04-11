@@ -1361,7 +1361,7 @@ def renderFeed(entries, path, categorieslist):
     # print entries
     for entry in entries:
         print "<item>"
-        print "<title>%s</title>" % entry.headline
+        print "<title>%s</title>" % entry.headline.replace('<h1>','').replace('</h1>','')
         print "<link>%s</link>" % entry.url
         print "<comments>%s#comments</comments>" % entry.url
         print "<pubDate>%s</pubDate>" % strftime(rfc822time, entry.date.timetuple())
