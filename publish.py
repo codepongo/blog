@@ -12,7 +12,7 @@ def mkdir(path):
 def main():
     source = mkdir(sys.argv[1])
     data_path = mkdir(sys.argv[2])
-    if len(sys.argv) == 3:
+    if len(sys.argv) == 4:
         img_path = mkdir(sys.argv[3])
     else:
         img_path = ''
@@ -30,10 +30,11 @@ def main():
             des = os.path.join(data_path, new_name)
             if not os.path.isfile(des):
                 shutil.copy(os.path.join(source, f), des)
-        if ext in ['.png']:
-            des = os.path.join(img_path, f)
-            if img_path != '' and not os.path.isfile(des):
-                shutil.copy(os.path.join(source, f), des)
+        if img_path != '':
+            if ext in ['.png']:
+                des = os.path.join(img_path, f)
+                if not os.path.isfile(des):
+                    shutil.copy(os.path.join(source, f), des)
 
 if "__main__" == __name__:
     main()
