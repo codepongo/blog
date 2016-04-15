@@ -1,0 +1,44 @@
+怎样阅读MSDN文档
+===================
+**通过阅读官方手册进行学习是自我提高的捷径。**
+
+
+MSDN的一般结构为：
+<pre>
+super topic
+ \
+  + topic - Overview -+- About
+     |                |
+     |                +- Using
+     |                |
+     |                +- Reference
+     +--- relation topics
+</pre>
+每个主题都有一个Overview，以摘要形式简单介绍主题的相关内容。
+
+
+每个主题都包含: 关于about 用法using 参考reference 三部分。
+
+
+* 关于：主题相关的知识点的详细解释，需要详读。
+* 用法：包括代码片段或工程示例说明主题相关的API用法，可以结合前面的关于章节进一步理解知识点，感兴趣的部分详读并运行调试。
+* 参考：主题相关API包括函数，结构体，宏和枚举的详细文档说明，略读。
+
+
+以GDI文档为例：[https://msdn.microsoft.com/en-us/library/vs/alm/dd145071.aspx](https://msdn.microsoft.com/en-us/library/vs/alm/dd145071(v=vs.85).aspx)
+<pre>
+... > Archive > Graphics > Windows GDI 
+-------------------------------------------+-----------------------------------
+                                           |Multiple Display Monitors is ....
+...                                        |
+v Multiple Display Monitors                |
+ v About Multiple Display Monitors         |
+    The Virtual Screen                     |
+    ...                                    |
+ > Using Multiple Display Monitors         |
+ > Multiple Display Monitors Reference     |
+                                           |
+</pre>
+
+顶部为其父主题，左侧为此主题的章节部分。右侧为此主题的概述。
+
