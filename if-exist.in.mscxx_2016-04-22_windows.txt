@@ -1,0 +1,15 @@
+<p>MS C++的__if_exists关键字</p>
+
+<h1>__if_exists keyword in microsoft c++ </h1>
+
+<p>__if_exists allows you to check a class have member or not.
+__if_exists用于检查类中是否存在某成员</p>
+
+<pre data-language="swift">
+__if_exists(class::member)
+</pre>
+
+<p><a href="http://msdn.microsoft.com/en-us/library/x7wy9xh3.aspx">more</a>
+<a href="http://msdn.microsoft.com/en-us/library/x7wy9xh3.aspx">更多</a></p>
+
+#html
