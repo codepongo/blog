@@ -1,0 +1,29 @@
+<h1>闭包的内存管理</h1>
+
+<pre data-language="swift">
+  do {
+        class Holder {
+            var closure:(Void->Void)?
+            deinit {
+                print("\(self.dynamicType) \(#function)")
+            }
+        }
+        {
+            let h = Holder()
+            h.closure = {
+                [weak h] in // weak
+                guard let h = h else { return } // here comes the weak–strong dance
+                print(h) // strong
+            }
+        }()
+    }
+}
+</pre>
+
+<p>循环引用是两个对象实例作为彼此的属性成员互相持有导致的。</p>
+
+<p>对于在实例的方法中对其他实例进行持有（引用计数加一）是不会造成循环引用的，因为当方法执行完毕后，其局部变量自动摧毁时，对其引用对象的引用计数自动减一。</p>
+
+<p>闭包的循环引用是因为闭包的镜像表（相当于闭包对象实例的成员）持有了闭包拥有者实例，而其拥有者又持有了闭包实例，即如上所述，两个对象实例作为彼此的属性成员互相持有造成了循环引用。所以在镜像表中做弱引用或无主引用声明后（如实例代码注释weak的部分），再在闭包内做强弱转换（示例代码注释weak-strong dance部分），这相当于在闭包镜象实例的方法中持有其他对象，于是就避免了闭包循环引用。</p>
+
+#html
