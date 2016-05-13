@@ -1,0 +1,11 @@
+<h1>C++函数声明中带用throw关键字</h1>
+
+<h2>function declaration with throw</h2>
+
+<ul>
+<li>void f() throw() // <strong>no</strong> exceptions allowed 不允许抛出任何异常</li>
+<li><p>void f() throw(...) // <strong>all</strong> exceptions allowed 允许抛出任何异常</p></li>
+<li><p>void f() throw(type) // <strong>only</strong> the exception of type <em>type</em> allowed 只允许抛出type类型的异常</p></li>
+</ul>
+
+#html
