@@ -1,0 +1,2201 @@
+﻿<h1>duilib之源码分析</h1>
+
+
+Version:1.0
+<!--
+date:20110820c
+Author:studyduilib
+changelog:
+  add file
+todo:
+  Synchronous with the lastest duilib source
+-->
+* duilib架构
+  * 模块结构
+    <img src=duilib_sa_html/duilib_architecture_v1.2.jpg>
+  * 文件结构
+    * stb_image.c
+    * stdafx.h stdafx.cpp
+    * UIActiveX.h UIActiveX.cpp
+    * UIBase.h UIBase.cpp
+    * UICombo.h UICombo.cpp
+    * UICommonControls.h UICommonControls.cpp
+    * UIContainer.h UIContainer.cpp
+    * UIControl.h UIControl.cpp
+    * UIDelegate.h UIDelegate.cpp
+    * UIDlgBuilder.h UIDlgBuilder.cpp
+    * UIlib.h UIlib.cpp
+    * UIList.h UIList.cpp
+    * UIManager.h UIManager.cpp
+    * UIMarkup.h UIMarkup.cpp
+    * UIRender.h UIRender.cpp
+    * UIRichEdit.h UIRichEdit.cpp
+    * XUnzip.cpp
+  * 消息处理机制
+     1 创建  通过CreateEx最后一个参数传递类指针this, 在消息处理函数中对WM_NCCREATE消息进行处理, 通过SetWindowLongPtr(GWLP_USERDATA)进行保存
+     2 消息处理  在消息处理函数通过GetWindowLongPtr(GWLP_USERDATA)得到其类指针, 调用虚函数HandleMessage()响应其他消息。
+     3 销毁  消息处理函数中对WM_NCDESTROY消息进行处理, 调用原消息处理函数, 重置(GWLP_USERDATA), 调用虚函数OnFinalMessage()做最后处理。
+  * 绘制过程
+    <img src=duilib_sa_html/duilib_paint_v1.0.jpg>
+
+* 第三方库简介
+  * stb_image
+    * 版本 1.29
+    * 描述 载入各种图片格式文件
+    * 函数
+      * stbi_load_from_memory()
+        * 功能  加载图片
+        * buffer  内存数据
+        * len  数据大小,
+        * x  [out]图像宽度(像素)
+        * y  [out]图像高度(像素)
+        * comp  [out]图像数据组成结果
+        * req_comp  图像数据组成
+        STBI_default = 0,  only used for req_comp
+        STBI_grey       = 1,
+        STBI_grey_alpha = 2,
+        STBI_rgb        = 3,
+        STBI_rgb_alpha  = 4
+        [more than] stb_image.c line 100  130
+      * stbi_image_free()
+        * 功能  释放已加载的图片数据
+  * XUnzip
+    * 版本 1.3 
+    * 描述 解压zip包
+    * 函数
+      * OpenZip()
+      * 功能  打开一个zip包
+      * z 内存地址, 文件名, 文件句柄
+        * len  长度
+        * flag  标识(ZIP_HANDLE=1, ZIP_FILENAME=2, ZIP_MEMORY=3)
+        * return  HZIP
+      * CloseZip()
+        * 功能  关闭一个zip包
+        * hz  HZIP
+      * GetZipItem()
+        * 功能  从zip包中获取一项
+        * hz  HZIP
+        * index  序号
+        * ze  zip入口点结构
+      * FindZipItem()
+        * 功能  在zip包中查找项
+        * hz  HZIP
+        * name  项名
+        * ic  大小写敏感 CASE_INSENSITIVE=1, CASE_SENSITIVE=2
+        * index  [out]序号
+        * ze  zip入口点结构
+      * UnzipItem()
+        * 功能  解压项
+      * hz  HZIP
+      * dst  [out]解压后存储位置
+      * len  储存长度
+      * flags  标识(ZIP_HANDLE=1, ZIP_FILENAME=2, ZIP_MEMORY=3)
+
+* 预编译模块与uilib模块
+  * 预处理模块
+    * [macro] lengthof(x) 计算数组长度宏
+    * [macro] MAX 两值最大
+    * [macro] MIN 两值最小
+    * [macro] CLAMP(x,a,b)  x在a,b之间则取x否则取最小,在a小于b时才有意义
+    * [library] winmm.lib Windows多媒体相关应用程序接口库
+    * [library] comctl32.lib  Windows通用控件库
+  * uilib模块
+    * 导出导入宏
+    * 包含系统的头文件
+    * 包含duilib库的公共头文件
+    * Bjarke Viksoe UI library lisence
+    * dllmain() 函数
+* 基础模块
+  * [macro] UI_WNDSTYLE_ 窗口风格属性 
+    * UI_WNDSTYLE_CONTAINER 容器 
+    * UI_WNDSTYLE_FRAME 框架 
+    * UI_WNDSTYLE_CHILD 子窗口 
+    * UI_WNDSTYLE_DIALOG 对话框 
+    * UI_WNDSTYLE_EX_FRAME 扩展框架 
+    * UI_WNDSTYLE_EX_DIALOG 扩展对话框 
+  * [macro] UI_CLASSSTYLE_ 窗口类属性 
+    * UI_CLASSSTYLE_CONTAINER 容器 
+    * UI_CLASSSTYLE_FRAME 框架 
+    * UI_CLASSSTYLE_CHILD 子窗口 
+    * UI_CLASSSTYLE_DIALOG 对话框 
+  * [macro] ASSERT(expr)
+    * 功能  断言 显示断言所在文件，行以及expr的内容
+    * 参考  _ASSERTE(expr)
+  * [macro] TRACE(LPCTSTR pstrFormat, ...)
+    [+][function] void __Trace(LPCTSTR pstrFormat, ...)
+    * 功能  调试信息
+    * 参考  参考printf
+  * [macro] TRACEMSG(UINT uMsg)
+    [+][function] LPCTSTR __TraceMsg(UINT uMsg)
+    * 功能  将windows消息转化成其对应的宏名
+    * uMsg  Windows消息ID
+    返回值  宏名(字符串)
+  * [-][class]  STRINGorID  资源名称或ID
+    * 继承  无
+    * 描述  将资源ID和名称统一字符床形式名称
+  * [+][class]  CPoint  点
+    * 继承  tagPOINT
+    * 方法
+      CPoint(LPARAM lParam)  将消息中lParam转化成点
+  * [+][class] CSize  尺寸
+    * 继承  tagSIZE
+  * [+][class]  CRect 矩形区域
+    * 继承  tagRECT 
+    * 方法 
+      * void Empty()  设置left,right,top,bottom为零
+      * void Join()  合并两个矩形产生一个包含两个矩形的新的矩形
+      * void ResetOffset()  将矩形移动到left=0,top=0的位置
+      * void Normalize()  调整left,right,top,bottom使之left小于right top小于bottom
+      * void Offset(int cx, int cy)  移动矩形, cx为横向移动距离, cy为纵向移动距离
+      * void Inflate(int cx, int cy)  放大矩形, cx为左右各放大的大小, cy为上下各放大的大小
+      * void Deflate(int cx, int cy)  缩小矩形, cx为左右各缩小的大小, cy为上下各缩小的大小
+      * void Union(CRect& rc)  合并矩形, 与Join()函数功能几乎一致, 但对空矩形处理不同(忽略空矩形)
+  * [+][class]  CStdPtrArray 指针数组
+    * 描述
+      m_nAllocated为已申请空间大小(可储存Ptr的数量), 如果空间不足则realloc(m_nAllocated*2)
+      存储元素为指针
+  * [+][class]  CStdValArray 值数组
+    * 说明
+      实现与CStdPtrArray类似
+      存储元素为值
+  * [+][class]  CStdString 字符串  
+    * 实现
+      如果长度小于MAX_LOCAL_STRING_LEN(63)则在栈上分配, 否则在堆上分配
+    * 方法 
+      * void Assign(LPCTSTR pstr, int nLength = -1)
+        * 功能  分配并存储字符串
+        * 参数
+          * pstr  字符串指针
+          * nLength 字符串大小
+  * [+][class]  CStdStringMap 字符串-指针map
+    * 实现  
+      使用times33哈希算法
+
+  * [+][class] CWindowWnd windows窗口的封装类
+    * 方法
+      * RegisterWindowClass()  RegisterClass的封装
+      * RegisterSuperclass()  超类化窗口
+    * Subclass()  子类化窗口
+      * ShowModal()  窗口模态化
+      * __WndProc()  消息处理函数
+      * __ControlProc()  超类化消息处理函数
+  * [+][class]  CWaitCursor 沙漏形鼠标
+    * 描述
+      * 构造函数中设置鼠标形状为沙漏
+      * 析构函数中还原鼠标形状
+
+* 核心模块
+  * [+][class] CRenderClip
+    * 描述  渲染区域控制，设置在dc上绘制的区域，防止子控件绘制到父控件外侧（float属性控件除外）
+    * 函数
+      * GenerateClip()  产生一个剪切区域, hDC窗口句柄, rc区域, clip[out]剪切区
+      * GenerateRoundClip()  产生一个圆角剪切区域, hDC窗口句柄, rc区域, width 横向圆角弧度, height纵向圆角弧度, clip[out]剪切区
+      * UseOldClipBegin()  使用整个活跃区域作为剪切区, hDC窗口句柄, clip剪切区
+      * UseOldClipEnd()  使用当前控件有效区域作为剪切区, hDC窗口句柄, clip剪切区
+  * [+][class] CRenderEngine 渲染引擎
+    * 函数  
+    * LoadImage()
+      * 功能  加载图像
+      * bitmap  图像
+      * type  类型
+      * mask  隐蔽色
+    * 实现
+      1 读取文件，资源和zip包中图像文件数据到内存(通过HIWORD(bitmap.m_lpstr)区别从资源中或文件中加载MAKEINTRESOURCE  The return value is the specified value in the low-order word and zero in the high-order word. (from msdn))
+      2 创建DIB
+      3 通过stbi_load_from_memory加载数据文件并转化后复制到DIB中
+      4 返回TImageInfo结构
+    * DrawImage()
+      * 功能  绘制图像
+      * hDC  设备句柄
+      * hBitmap  位图句柄
+      * rc  对象区域
+      * rcPaint  绘制区域
+      * rcBmpPart  位图区域
+      * rcConrners  拉伸区域
+      * alphaChannel  alpha通道
+      * uFade  透明度
+      * hole  居中
+      * xtiled  横向平铺
+      * ytiled  纵向平铺
+      * 实现  
+        1 CreateCompatibleDC (创建内存设备句柄)
+        2 SelectObject() (将位图选入内存设备句柄)
+        3 AlphaBlend (alpha混合)
+        4 BitBlt() or StretchBlt() (绘制到内存设备句柄)
+        5 SelectObject() (将老的位图选入内存设备句柄)
+        6 DeleteDC (释放内存设备句柄)
+    * DrawImageString()
+      * 功能  按标识字符串绘制图像
+      * hDC  设备句柄
+      * pManager  绘制管理者
+      * rc  对象区域
+      * rcPaint  绘制区域
+      * pStrImage  标识字符串
+      * pStrModify  标识字符串
+      * 实现  
+        1 分析标识字符串获取属性
+          1.1 先分析pStrImage信息后再分析pStrModify的信息
+        2 获取图像数据
+        3 绘制图像
+    * DrawColor()
+      * 功能  绘制矩形
+      * hDC  设备句柄
+      * rc  对象区域
+      * color  颜色(alpha, r, g, b)
+      * 实现  
+        如果不需要alpha混合则SetBkColor() ExtTextOut()
+        否则 创建一个像素大小的32位DIB
+    * DrawGradient()
+      * 功能  绘制渐变
+      * hDC  设备句柄
+      * rc  对象区域
+      * dwFirst  颜色1
+      * dwSecond  颜色2
+      * bVertical  渐变方向 true垂直 false水平
+      * nSteps  步长 [使用GradientFill() API时无效]
+      * 实现  
+        1 渐变填充
+        2 alpha混合
+    * DrawLine()  绘制直线 
+    * DrawRect()  绘制矩形
+    * DrawRoundRect()  绘制圆角矩形
+    * DrawText()  绘制文字
+    * DrawHtmlText() 
+      * 功能  绘制 "mini-html" 标识字符串
+      * hDC  设备句柄
+      * pManager  绘制管理者
+      * rc  对象区域
+      * pstrText   "mini-html" 标识字符串
+      * dwTextColor  字符串类型
+      * pLinks  产生链接效果的区域组
+      * sLinks  产生链接效果的区域组数量
+      * nLinkRects  产生链接效果的区域组数量
+      * uStyle  类型，同DrawText() Format Flags
+    * GenerateBitmap()
+      * 功能  产生一个BMP位图
+      * pManager  绘制管理者
+      * pControl  控件句柄
+      * rc  对象区域
+      * 返回  BMP句柄
+  * [-][class] INotifyUI  Listener interface
+  * [-][class] IMessageFilterUI  MessageFilter interface
+  * [+][class] CPaintManagerUI 绘制管理者
+    * 函数
+      * Init()  初始化
+      * NeedUpdate()  设置界面更新标志位
+      * Invalidate()  InvalidateRect API的封装
+      * GetPaintDC()  设备句柄相关函数
+      * GetPaintWindow()  得到窗口句柄
+      * GetTooltipWindow()  得到提示窗口句柄
+      * GetMousePos()  得到鼠标位置
+      * GetClientSize()  得到客户端区域大小
+      * GetInitSize() 获取窗口初始化时大小
+      * SetInitSize() 设置窗口初始化时大小
+      * GetSizeBox()  获取托腮大小
+      * SetSizeBox() 设置托腮大小
+      * GetCaptionRect() 获取标题区域大小
+      * SetCaptionRect() 设置标题区域大小
+      * GetRoundCorner() 获取圆角大小
+      * SetRoundCorner() 设置圆角大小
+      * GetMinInfo() 获取大小的最小限制
+      * SetMinInfo() 设置大小的最小限制
+      * GetMaxInfo() 获取大小的最大限制
+      * SetMaxInfo() 设置大小的最大限制
+      * SetTransparent() 设置透明度
+      * SetBackgroundTransparent() 设置背景是否使用透明属性 
+      * IsShowUpdateRect() 获取刷新区域属性
+      * SetShowUpdateRect() 设置刷新区域属性
+      * GetInstance() 获取应用程序对象实例句柄
+      * SetInstance() 设置应用程序对象实例句柄
+      * GetInstancePath() 获取 可执行程序所在路径
+      * GetCurrentPath() 获取当前工作目录
+      * SetCurrentPath() 设置当前工作目录
+      * GetResourceDll() 获取资源动态库句柄
+      * SetResourceDll() 设置资源动态库句柄
+      * GetResourcePath() 获取资源路径
+      * SetResourcePath() 设置资源路径
+      * GetResourceZip() 获取资源压缩包文件名
+      * SetResourceZip() 设置资源压缩包文件名
+      * UseParentResource() 
+        * 功能  使用当前绘制管理者的根管理者的资源设置  
+        * 实现  循环得到父绘制管理者直到找到最顶层的绘制管理者
+      * GetParentResource() 得到绘制管理者
+      * GetDefaultDisabledColor() 获取非可用状态文字颜色
+      * SetDefaultDisabledColor() 设置非可用状态文字颜色
+      * GetDefaultFontColor() 获取默认字体颜色
+      * SetDefaultFontColor() 设置默认字体颜色
+      * GetDefaultLinkFontColor() 获取超链接默认字体颜色
+      * SetDefaultLinkFontColor() 设置超链接默认字体颜色
+      * GetDefaultLinkHoverFontColor() 获取鼠标漂浮在链接上时默认字体颜色
+      * SetDefaultLinkHoverFontColor() 设置鼠标漂浮在链接上时默认字体颜色
+      * GetDefaultSelectedBkColor() 获取选中后背景颜色
+      * SetDefaultSelectedBkColor() 设置选中后背景颜色
+      * GetDefaultFontInfo() 获取默认字体
+      * SetDefaultFont() 设置默认字体
+      * 字体列表操作
+        * GetCustomFontCount()  得到字体列表中项数量
+        * AddFont()  加入一种字体到字体列表中
+        * AddFontAt()  加入一种字体到字体列表的指定位置
+        * GetFont()  按序号得到字体列表中的字体
+        * GetFont()  按字体属性得到字体列表中的字体
+        * FindFont(HFONT)  按句柄查找字体列表中的一项
+        * FindFont(LPCTSTR, int, bool, bool, bool)  按属性查找字体列表中的一项
+        * RemoveFont()   按句柄移除字体列表中的指定项
+        * RemoveFontAt()  按序号移除字体列表中的指定项 
+        * RemoveAllFonts()  移除字体列表中的所有项
+        * GetFontInfo(int)  按序号得到字体列表中项的属性
+        * GetFontInfo(HFONT)  按句柄得到字体列表中项的属性
+      * 图片列表操作
+        * GetImage(LPCTSTR bitmap) 获取图片项 如果列表中不存依次从其上层绘制管理者中获取
+        * GetImageEx() 获取图片项 如果不存在则向图片列表中添加一项
+        * RemoveAllImages() 移除图片列表中所有项
+      * 默认属性列表操作
+        * AddDefaultAttributeList() 加入项到默认属性列表
+        * GetDefaultAttributeList() 从默认属性列表中获取项
+        * RemoveDefaultAttributeList() 从默认属性列表中移除项
+        * GetDefaultAttribultes() 获取默认属性列表中的项
+        * RemoveAllDefaultAttributeList() 移除默认属性列表中所有项
+      * AttachDialog() 将控件树附加到当前绘制管理者
+      * InitControls() 初始化控件 把控件名称加入到绘制管理者的控件名map中
+      * ReapObjects(CControlUI* pControl) 重置控件
+      * 选项组操作
+        * AddOptionGroup()
+          * 功能 添加控件到组中
+          * 实现 如果组选项存在则加入pControl到此组中 如果不存在则创建新组并加入pControl
+        * GetOptionGroup()  通过名称得到选项组
+        * RemoveOptionGroup()  移除组中控件 如果组中没有控件则移除组
+        * RemoveAllOptionGroups()  移除所有选项组
+      * GetFocus()  得到控件焦点
+      * SetFocus(CControlUI* pControl)  控件获得焦点
+      * SetNextTabControl()  得到标签页控件
+      * 定时器操作
+        * SetTimer()  设置一个定时器
+        * KillTimer()  清除一个定时器
+        * RemoveAllTimers()  清除所有定时器
+      * SetCapture() 捕获鼠标
+      * ReleaseCapture() 释放捕获鼠标
+      * IsCaptured() 鼠标是否被捕获
+      * AddNotifier()  加入一个Listener
+      * RemoveNotifier()    移除一个Listener
+      * SendNotify(TNotifyUI&)  发送一个通知
+      * SendNotify(CControlUI*, LPCTSTR, WPARAM, LPARAM)  发送一个通知
+      * AddPreMessageFilter()  加入一个预处理Message Filter
+      * RemovePreMessageFilter()  移除一个预处理Message Filter
+      * AddMessageFilter(IMessageFilterUI* pFilter)  加入一个Message Filter
+      * RemoveMessageFilter(IMessageFilterUI* pFilter)  移除一个Message Filter
+
+    * PostPaint控件操作
+      * GetPostPaintCount() 得到PostPaint控件数量
+      * AddPostPaint()  加入PostPaint控件
+      * RemovePostPaint()  移除一个PostPaint控件
+      * SetPostPaintIndex()  设置控件到指定的序列位置
+    * AddDelayedCleanup() 加入控件到延迟处理列表当中
+    * GetRoot() 得到根控件
+    * FindControl(POINT) 调用根节点控件的函数, 按位置匹配控件
+    * FindControl(CControlUI*, POINT) 调用父控件的函数, 按名字匹配控件
+    * FindControl(LPCTSTR) 在控件名map中按名字匹配控件
+    * FindControl(CControlUI*, LPCTSTR) 调用父控件的函数, 按名字匹配控件
+    * MessageLoop() 消息循环
+    * TranslateMessage() 消息处理
+    * MessageHandler() 消息处理
+    * PreMessageHandler() 消息预处理
+    * 回调函数
+      * 功能 比较属性(pData)与控件(pThis)的属性是否相同
+      * 相关函数
+        * __FindControlFromNameHash()  按名称查找控件的回调函数
+        * __FindControlFromCount()  计算控件数目的回调函数
+        * __FindControlFromPoint()  按位置查找控件的回调函数
+        * __FindControlFromTab()  查找下一个相应tab的控件
+        * __FindControlFromShortcut()  快捷方式对应的控件
+        * __FindControlFromUpdate() 查找需要刷新的控件
+        * __FindControlFromNameByParent()  查找子控件
+  * 属性
+    * HWND m_hWndPaint  绘制窗口句柄
+    * HDC m_hDcPaint    绘制DC
+    * HDC m_hDcOffscreen 屏幕兼容内存DC
+    * HDC m_hDcBackground  背景DC
+    * HBITMAP m_hbmpOffscreen  屏幕DIB
+    * HBITMAP m_hbmpBackground  背景DIB
+    * HWND m_hwndTooltip  提示窗口句柄
+    * TOOLINFO m_ToolTip  提示结构
+    * bool m_bShowUpdateRect  是否更新
+    * CControlUI* m_pRoot  根控件指针
+    * CControlUI* m_pFocus  获得焦点控件指针
+    * CControlUI* m_pEventHover  鼠标停留控件指针
+    * CControlUI* m_pEventClick  点击事件控件指针
+    * CControlUI* m_pEventKey  相应键盘事件控件指针
+    * POINT m_ptLastMousePos  鼠标位置
+    * SIZE m_szMinWindow    窗口最小限制
+    * SIZE m_szMaxWindow    窗口最大限制
+    * SIZE m_szInitWindowSize  初始化窗口大小
+    * RECT m_rcSizeBox    托腮大小
+    * SIZE m_szRoundCorner  圆角大小
+    * RECT m_rcCaption    标题大小
+    * UINT m_uTimerID    计时器ID
+    * bool m_bFirstLayout  是否为第一层
+    * bool m_bUpdateNeeded  是否需要更新
+    * bool m_bFocusNeeded  是否需要焦点
+    * bool m_bOffscreenPaint  是否绘制m_hDcOffscreen
+    * bool m_bAlphaBackground  背景是否透明
+    * bool m_bMouseTracking  是否追踪鼠标
+    * bool m_bMouseCapture  是否捕获鼠标
+    * CStdPtrArray m_aNotifiers  Listener 列表
+    * CStdPtrArray m_aTimers    计时器列表
+    * CStdPtrArray m_aPreMessageFilters  预处理消息列表
+    * CStdPtrArray m_aMessageFilters    消息处理列表
+    * CStdPtrArray m_aPostPaintControls  PostPaint控件列表
+    * CStdPtrArray m_aDelayedCleanup  延迟释放控件列表
+    * CStdStringPtrMap m_mNameHash  控件名哈希列表
+    * CStdStringPtrMap m_mOptionGroup  选项组列表
+    * CPaintManagerUI* m_pParentResourcePM  当前绘制管理者的上一层绘制管理者（父绘制管理者）
+    * DWORD m_dwDefalutDisabledColor  默认非可用状态字体颜色
+    * DWORD m_dwDefalutFontColor  默认字体颜色
+    * DWORD m_dwDefalutLinkFontColor  默认链接颜色
+    * DWORD m_dwDefalutLinkHoverFontColor  默认鼠标漂浮时字体颜色
+    * DWORD m_dwDefalutSelectedBkColor  默认被选择后背景颜色
+    * TFontInfo m_DefaultFontInfo  默认字体信息
+    * CStdPtrArray m_aCustomFonts  字体列表
+    * CStdStringPtrMap m_mImageHash  图片资源名哈希表
+    * CStdStringPtrMap m_DefaultAttrHash  默认属性哈希表
+    * HINSTANCE m_hInstance  应用程序对象实例句柄
+    * HINSTANCE m_hResourceInstance  资源对象实例句柄
+    * CStdString m_pStrResourcePath  资源路径
+    * CStdString m_pStrResourceZip  zip包资源名称
+    * CStdPtrArray m_aPreMessages  预处理消息队列
+  * [+][class] UIMarkup   解析XML
+    * CMarkup()
+      * 功能  构造函数
+      * pstrXML  xml数据
+      * 实现
+      初始化成员变量
+      调用Load()
+    * ~CMarkup()  析构函数
+    * Load()
+      * 功能  加载xml数据
+      * pstrXML  xml数据
+    * LoadFromMem()
+      * 功能  从内存中加载xml数据
+      * pByte  内存数据指针
+      * dwSize  大小
+      * encoding  编码方式
+        * XMLFILE_ENCODING_UTF8(默认) 
+        * XMLFILE_ENCODING_UNICODE
+        * XMLFILE_ENCODING_ASNI
+      * 实现
+        1 进行编码转换
+        2 申请控件
+        3 复制数据
+
+    * LoadFromFile()
+      * 功能  从文件中加载xml数据
+      * pstrFilename  文件名
+      * encoding  编码方式
+      * 实现
+        1 判断资源类型是否为zip包,如果为zip包则进行解压
+        2 调用LoadFromMem()
+    * Release()  释放xml数据和元素信息数据
+    * IsValid()  Markup是否有效
+    * SetPreserveWhitespace()  设置是否保存空白行
+    * GetLastErrorMessage()
+      * 功能  得到错误信息
+      * pstrMessage  [out]错误信息内容
+      * cchMax  信息长度
+    * GetLastErrorLocation()
+      * 功能  得到出错位置
+      * pstrSource  错误所在位置内容
+      * cchMax  内容长度
+
+    * GetRoot()  得到根节点
+    * XMLELEMENT 元素结构
+      <pre>
+    tagXMLELEMENT  元素结构
+    {
+        ULONG iStart  在m_pstrXML中起始位置
+        ULONG iChild  子标签在m_pstrXML中的位置
+        ULONG iNext  同级下一个标签在m_pstrXML中的位置
+        ULONG iParent  上一级标签在m_pstrXML中的位置
+        ULONG iData  元素数据在m_pstrXML中的位置
+    } XMLELEMENT
+      </pre>
+    * LPTSTR m_pstrXML  xml数据
+    * XMLELEMENT* m_pElements  元素列表
+    * ULONG m_nElements  元素数量
+    * ULONG m_nReservedElements  存储元素空间
+    * TCHAR m_szErrorMsg[100]  错误消息
+    * TCHAR m_szErrorXML[50]    错误内容
+    * bool m_bPreserveWhitespace  是否过滤空白
+    * 解析xml数据
+      * bool _Parse()
+      * bool _Parse(LPTSTR& pstrText, ULONG iParent)
+        * 实现
+      <pre>
+        for()
+        {
+          如果为顶层则返回
+          填充element
+          解析名字
+          解析属性
+          标签闭合方式
+          如果为/>则continue
+          如果为>则递归调用_Parse()
+          如果为该标签的对应闭合标签 continue
+        }
+      </pre>
+    * _ReserveElement()  申请保存元素空间
+    * _SkipWhitespace(LPCTSTR&) 跳过空白
+    * _SkipIdentifier(LPCTSTR&)   跳过标识符
+    * _ParseData()
+      * 功能  解析数据
+      * pstrText  被解析的数据字符串
+      * pstrData  解析后的数据字符串
+      * cEnd  终止字符
+    * _ParseMetaChar() 解析转义字符
+    * _ParseAttributes() 解析属性
+    * _Failed() 记录错误信息返回错误
+  * [+][class] CMarkupNode
+    * CMarkupNode()  构造函数 构造一个空节点
+    * CMarkupNode(CMarkup* pOwner, int iPos)
+      * 功能  构造函数
+      * pOwner  CMarkup指针
+      * iPos  在xml数据中的位置
+    * IsValid()  节点对象是否有效
+    * GetParent()  得到父节点
+    * GetSibling()  得到兄弟节点
+    * GetChild()  得到子节点
+    * GetChild(LPCTSTR pstrName)
+      * 功能  按名字得到子节点
+      * 实现  循环查找所有子节点，直到名字匹配
+    * HasSiblings()  是否有兄弟节点
+    * HasChildren()  是否有子节点
+    * GetName()  得到节点对应的标签名
+    * GetValue()  得到节点对应的标签数据值
+    * HasAttributes()  是否有属性
+    * HasAttribute()  是否有名为pstrName的属性
+    * GetAttributeCount()  得到节点属性的数量
+    * GetAttributeName(int)  按序号得到属性名称
+    * GetAttributeValue(int, LPTSTR, SIZE_T)
+      * 功能  得到属性
+      * iIndex  属性序号
+      * pstrValue  [out] 属性值字符串
+      * cchMax  属性值字符串长度
+    * GetAttributeValue(LPCTSTR pstrName, LPTSTR pstrValue, SIZE_T cchMax)
+      * 功能  得到属性
+      * pstrName  属性名
+      * pstrValue  [out] 属性值字符串
+      * cchMax  属性值字符串长度
+    * _MapAttributes()  解析xml属性建立 属性名和值的表映射到xml数据的位置
+    * MAX_XML_ATTRIBUTES = 64 属性最大数量限制
+    * XMLATTRIBUTE 属性结构
+    <pre>
+      typedef struct
+      {
+          ULONG iName
+          ULONG iValue
+      } XMLATTRIBUTE  属性结构
+    </pre>
+    * int m_iPos  节点在xml数据中的位置
+    * int m_nAttributes  属性数量
+    * m_aAttributes[MAX_XML_ATTRIBUTES]  属性-值 映射xml位置 列表
+    * m_pOwner CMarkup指针
+  * [-][class] IDialogBuilderCallback
+    * 功能  构建UI时回调类 用于创造用户自定义的控件
+    * 函数  
+      * virtual CControlUI* CreateControl(LPCTSTR)
+        * 功能 创建用户自定义控件
+        * pstrClass 控件名
+  * [+][class] CDialogBuilder
+    * UI构建者, 用于构建UI
+    * 函数
+      * CControlUI* Create(STRINGorID, LPCTSTR, IDialogBuilderCallback*, CPaintManagerUI*)
+        * 功能  构建UI
+        * xml  可以是一个内存xml数据或一个文件名
+        * type = (UINT) 0  如果xml数据位于EXE资源中则type指定资源类型
+        * pCallback = NULL  回调函数
+        * pManager = NULL 绘制管理者指针
+        * 实现  判断xml类型->加载xml数据->调用Create(pCallback, pManager)构建
+      * CControlUI* Create(IDialogBuilderCallback*, CPaintManagerUI*)
+        * 功能  构建UI
+        * 实现  得到顶层Window标签,并解析属性->调用_Parse() 解析xml
+      * void GetLastErrorMessage()
+        * 功能 获取错误信息
+      * void GetLastErrorLocation()
+        * 功能 出错位置
+      * [-]CControlUI* _Parse()
+        * 实现
+          <pre>
+          for(循环顶级标签) 
+          {
+            按xml标签创建控件对象
+            如果不是标准控件则调用m_pCallback->CreateControl()创建用户自定义控件对象
+            如果有子节点则递归调用_Parse()
+            因为某些属性和父窗口相关，比如selected，必须先Add到父窗口
+            初始化控件默认属性
+            根据xml数据解析处理控件属性
+          }
+        </pre>
+    * 属性
+      * CMarkup m_xml CMarkup对象
+      * IDialogBuilderCallback* m_pCallback构建控件回调
+
+* 控件模块
+  * 控件基类
+    * [+]class CControlUI  控件
+      * GetName()  得到控件名称 名称为控件的唯一ID
+      * SetName()  设置控件名称
+      * GetInterface()  得到控件指针
+      * GetClass()  得到控件类名
+      * GetControlFlags()  得到控件的类型标志
+      * Activate()  控件是否活跃 (非不可用状态，非不可见状态)
+      * GetManager()  得到绘制管理者
+      * SetMananer()
+        * 功能  设置控件的绘制管理者
+        * 实现
+          1 设置控件管理者
+          2 初始化
+      * GetParent()  得到父控件
+      * GetText()  得到控件显示内容
+      * SetText()  设置控件显示内容
+      * GetBkColor()  得到背景色
+      * GetBkColor2()  得到背景色2
+      * SetBkColor2()  设置背景色2
+      * GetBkColor3()  得到背景色3
+      * SetBkColor3()  设置背景色3
+      * 背景色说明  背景色1,2,3用于渐变色 颜色渐变过程为1->2->3
+      * GetBkImage()  得到背景图片
+      * SetBkImage()  设置背景图片
+      * GetBorderColor()  得到边的颜色
+      * SetBorderColor()  设置边的颜色
+      * GetFocusBorderColor()  设置获得焦点时边的颜色
+      * GetBorderSize()  得到边的宽度
+      * SetBorderSize()  设置边的宽度
+      * GetBorderRound()  得到圆角
+      * SetBorderRound()  设置圆角
+      * DrawImage()  绘制图片
+      * GetPos()  得到控件位置
+      * SetPos()  设置控件位置并重绘
+      * GetWidth()  得到控件宽度
+      * GetHeight()  得到控件高度
+      * GetX()  得到控件横坐标位置(左上点横坐标)
+      * GetY()  得到控件纵坐标位置(左上点纵坐标)
+      * GetPadding()  设置外边距，由上层窗口绘制(求周围控件离它远点或近点(负值，不过受绘制顺序影响，比较少用)
+      * SetPadding()  设置外边距，由上层窗口绘制
+      * GetFixedXY()  实际大小位置使用GetPos获取，这里得到的是预设的参考值
+      * SetFixedXY()  仅float为true时有效
+      * GetFixedWidth()  实际大小位置使用GetPos获取，这里得到的是预设的参考值
+      * SetFixedWidth()  预设的参考值
+      * GetFixedHeight()  实际大小位置使用GetPos获取，这里得到的是预设的参考值
+      * SetFixedHeight()  预设的参考值
+      * 获取 OR 设置大小的限制值
+        * GetMinWidth()
+        * SetMinWidth()
+        * GetMaxWidth()
+        * SetMaxWidth()
+        * GetMinHeight()
+        * SetMinHeight()
+        * GetMaxHeight()
+        * SetMaxHeight()
+      * SetRelativePos()  设置相对位置比例
+      * SetRelativeParentSize()  设置父控件大小
+      * GetRelativePos()  得到相对位置比例
+      * IsRelativePos() -是使用相对位置
+      * GetToolTip() 获取提示信息
+      * SetToolTip() 设置提示信息
+      * 获取 OR 设置 快捷键
+        * GetShortcut()
+        * SetShortcut()
+      * IsContextMenuUsed() 获取上下文菜单是否被使用
+      * 获取 OR 设置 用户数据(字符串)
+        * GetUserData()
+        * SetUserData()
+      * 获取 OR 设置 用户指针
+        * GetTag()
+        * SetTag()
+      * 获取 OR 设置 控件是否可见
+        * IsVisible()
+        * SetVisible()
+      * SetInternVisible()  仅供内部调用，有些UI拥有窗口句柄，需要重写此函数
+      * 获取 OR 设置 控件可用
+        * IsEnabled()
+        * SetEnabled()
+      * 获取 OR 设置 是否处理鼠标事件
+        * IsMouseEnabled()
+        * SetMouseEnabled()
+        * IsFocused() 控件是否获得焦点
+        * SetFocuse() 设置控件获得焦点
+        * IsFloat() 控件是否悬浮
+        * SetFloat() 设置控件为悬浮
+      * FindControl()  查找控件
+      * Invalidate()
+        * 功能  设置无效,引起刷新
+        * 实现  循环至顶层控件为止, 计算当前无效区域与父控件交叉区域作为新无效区域。
+      * 获取 OR 设置 需更新状态
+        * IsUpdateNeeded()
+        * NeedUpdate()
+      * Init()  初始化控件事件响应, 在SetManager()中被调用
+      * DoInit()  做初始化处理函数, 被Init()调用
+      * DoEvent()  事件响应函数
+      * SetAttribute()  设置属性, 根据解析后的名称对所关心的属性设置状态成员变量的值
+      * ApplyAttributeList()  解析标签的属性字符串, 调用SetAttribute()
+      * EstimateSize()  预估控件大小
+      * DoPaint() 
+        * 功能  控件绘制
+        * 实现  绘制循序：背景颜色->背景图->状态图->文本->边框
+      * PaintBkColor()
+        * 功能  绘制背景色
+      * PaintBkImage()
+        * 功能  绘制背景图片
+      * PaintStatusImage()
+        * 功能  根据状态绘制背景图片
+      * PaintText()  绘制文字
+      * PaintBorder()  绘制边框
+      * DoPostPaint() 延时绘制
+        当容器被拖拽改变大小时，可以使用延时绘制
+      * 事件源
+        * 说明 可以通过委托的设计模式为初始化，销毁，事件处理过程中加入更多的处理过程
+        * CEventSource OnInit  初始化事件源
+        * CEventSource OnDestroy  销毁事件源
+        * CEventSource OnEvent  事件响应事件源
+  * 委托模式
+    * [+]class CDelegateBase 委托模式中的虚基类
+      * CDelegateBase()  构造函数，pObject为委托者的对象， pFn为执行方法
+      * CDelegateBase()  拷贝构造函数
+      * ~CDelegateBase()  析构函数
+      * Equals() 比较两个委托者, true 一致 false不同
+      * operator()  响应委托进行处理 event为响应的事件
+      * CDelegateBase* Copy() = 0  拷贝一个委托者
+      * GetFn()  得到执行方法
+      * GetObject()  得到委托者对象
+      * Invoke() = 0  调用执行方法
+      * m_pObject  委托者
+      * m_pFn  执行方法
+    * [+]class CDelegateStatic 静态委托，委托者为空，但有执行过程
+    * [+]class CDelegate 委托，委托者不为空
+  * 产生委托
+    * CDelegate<O, T> MakeDelegate(O* pObject, bool (T::* pFn)(TEventUI&))
+    * CDelegateStatic MakeDelegate(bool (*pFn)(TEventUI&))
+    * [+]class CEventSource  事件源
+      * 加入一个委托者
+        * operator+= (CDelegateBase& d)
+        * operator+= (FnType pFn)
+      * 删除一个委托者
+        * operator-= (CDelegateBase& d)
+        * operator-= (FnType pFn)
+      * 响应事件进行处理
+        * operator() (TEventUI& event)
+        * CStdPtrArray m_aDelegates  委托者列表
+  * 标签控件
+    * [+]class CLabelUI  标签控件
+      * CLabelUI()  构造函数
+      * m_uTextStyle  样式, 默认居中
+      * m_dwTextColor  可用时文字颜色
+      * m_dwDisabledTextColor  不可用时文字颜色
+      * m_iFont  字体序号
+      * m_bShowHtml  是否使用内嵌hmtl标记格式
+      * GetClass()  返回控件名
+      * GetInterface()  得到对象指针
+      * 获取 OR 设置 文本样式
+        * GetTextStyle()
+        * SetTextStyle()
+      * 获取 OR 设置 可用状态文字颜色
+        * SetTextColor()
+        * GetTextColor()
+        * 获取 OR 设置 为可用状态文字颜色
+        * SetDisableTextColor()
+        * GetDisabledTextColor()
+      * 获取 OR 设置 控件使用的字体, 对应在字体列表中的序号
+        * SetFont()
+        * GetFont()
+      * 获取 OR 设置 文字与边框之间填充距离
+        * GetTextPadding()
+        * SetTextPadding()
+      * 获取 OR 设置 是否使用内嵌html标记格式
+        * IsShowHtml()
+        * SetShowHtml()
+      * EstimateSize()  预估控件大小
+      * DoEvent()  事件处理
+      * SetAttribute()  设置属性
+      * PaintText()  绘制文本
+  * 按钮控件
+    * [+]class CButtonUI
+      * CButtonUI()  构造函数, 文本样式为单行居中
+      * GetClass()  返回控件名
+      * GetInterface()  得到对象指针
+      * GetControlFlags()  得到控件的类型标志
+      * DoEvent()  事件处理
+        * 说明 非鼠标事件交给基类CLabelUI处理, 鼠标事件由此函数处理
+      * Activate()
+        * 功能  激活按钮控件
+        * 实现  判断是否活跃，如活跃发送通知 
+      * SetEnabled()  设置按钮控件是否可用
+        * 实现  调用基类设置, 如不可用则清空按钮状态
+      * 设置/获取 鼠标悬时文本的颜色
+        * SetHotTextColor()
+        * GetHotTextColor()
+      * 设置/获取 按钮按下时文本颜色
+        * SetPushedTextColor()
+        * GetPushedTextColor()
+      * 设置/获取 按钮获得焦点时文本颜色
+        * SetFocusedTextColor()
+        * GetFocusedTextColor()
+      * 获取 OR 设置 正常状态下按钮背景图片
+        * GetNormalImage()
+        * SetNormalImage()
+      * 获取 OR 设置 鼠标悬浮时按钮背景图片
+        * SetHotImage()
+        * GetHotImage()
+      * 获取 OR 设置 按钮被按下时背景图片
+        * GetPushedImage()
+        * SetPushedImage()
+      * 获取 OR 设置 按钮获得焦点时背景图片
+        * GetFocusedImage()
+        * SetFocusedImage()
+      * 获取 OR 设置 非可用状态下按钮背景图片
+        * GetDisabledImage()
+        * SetDisabledImage()
+      * EstimateSize()  预估大小
+      * SetAttribute()  设置属性, 根据解析后的名称对所关心的属性设置状态成员变量的值
+      * PaintText()  绘制文本
+      * PaintStatusImage()  绘制状态背景图片
+  * 选项控件
+    * [+]class COptionUI  选项控件(如CheckBox RadioBox等)
+      * COptionUI()  构造函数
+      * ~COptionUI()  析构函数
+        * 说明 如果该选项组没有其他选项 调用CPaintManaerUI::RemoveOptionGroup()移除选项组
+      * GetClass()  返回控件名
+      * GetInterface()  得到对象指针
+      * SetManager()  设置绘制管理者, 父控件
+      * 获取 OR 设置 选项所属组
+        * GetGroup()
+        * SetGroup()
+      * 获取 OR 设置 选项是否处于选中状态
+        * IsSelected()
+        * Selected()
+      * Activate()  激活选项控件
+      * 获取 OR 设置 选中状态背景图片
+        * GetSelectedImage()
+        * SetSelectedImage()
+      * 获取 OR 设置 前景图片
+        * GetForeImage()
+        * SetForeImage()
+        * EstimateSize()  预估选项控件大小
+        * SetAttribute()  设置属性, 根据解析后的名称对所关心的属性设置状态成员变量的值
+        * PaintStatusImage()  绘制状态背景图片
+  * 文本控件
+    * [+]class CTextUI
+      * CTextUI()  构造
+      * ~CTextUI()  析构
+      * GetClass()  返回控件名
+      * GetControlFlags()  得到控件的类型标志
+      * GetInterface()  得到对象指针
+      * GetLinkContent()  得到当前控件中指定序号的超文本的内容
+      * DoEvent()  事件处理
+      * EstimateSize()  预估选项控件大小
+      * PaintText()  绘制文字
+      * MAX_LINK  超文本数量限制
+      * m_nLinks  超文本数量
+      * m_rcLinks  超文本区域数组
+      * m_sLinks  超文本内容数组
+      * m_bHoverLink  鼠标浮动的超文本链接序号
+  * 进度条控件
+    * [+]class CProgressUI
+      * GetClass()  返回控件名
+      * GetInterface()  得到对象指针
+      * 获取 OR 设置 进度条方向
+        * IsHorizontal()
+        * SetHorizontal()
+      * 获取 OR 设置 最小值
+        * GetMinValue()
+        * SetMinValue()
+      * 获取 OR 设置 最大值
+        * GetMaxValue()
+        * SetMaxValue()
+      * 获取 OR 设置 最小值
+        * GetValue()
+        * SetValue()
+      * 获取 OR 设置 前景图
+        * GetFgImage()
+        * SetFgImage()
+        * SetAttribute()  设置属性
+        * PaintStatusImage()  绘制状态图
+      * m_bHorizontal  进度条控件方向
+      * m_nMax 最大值
+      * m_nMin 最小值
+      * m_nValue 当前值
+      * CStdString m_sFgImage  前景图
+      * CStdString m_sFgImageModify  前景图2
+  * 滑块控件
+    * [+]class CSliderUI
+      * CSliderUI()  构造
+      * GetClass()  返回控件名
+      * GetInterface()  得到对象指针
+      * UINT GetControlFlags() const   得到控件的类型标志
+      * void SetEnabled()  设置滑块控件是否可用
+      * 获取 OR 设置滑块步长
+      * int GetChangeStep()
+      * void SetChangeStep()
+      * 获取 OR 设置滑块大小
+      * void SetThumbSize()
+      * RECT GetThumbRect() const
+      * 获取 OR 设置滑块图
+      * LPCTSTR GetThumbImage() const
+      * void SetThumbImage()
+      * 获取 OR 设置鼠标悬浮状态滑块图
+      * LPCTSTR GetThumbHotImage() const
+      * void SetThumbHotImage()
+      * 获取 OR 设置滑块按下状态滑块图
+      * LPCTSTR GetThumbPushedImage() const
+      * void SetThumbPushedImage()
+      * void DoEvent()  事件处理
+      * void SetAttribute()  设置属性
+      * void PaintStatusImage()  绘制状态图
+      * SIZE m_szThumb  滑块大小
+      * UINT m_uButtonState  控件状态
+      * int m_nStep  步长
+      * CStdString m_sThumbImage  正常状态滑块块图
+      * CStdString m_sThumbHotImage  鼠标悬浮状态滑块图
+      * CStdString m_sThumbPushedImage  按下状态滑块图
+      * CStdString m_sImageModify  滑块图2
+  * 编辑框控件
+    * [+]class CEditUI
+      * CEditUI()
+      * GetClass()  返回控件名
+      * GetInterface()  得到对象指针块
+      * GetControlFlags() const  得到控件的类型标志
+      * SetEnabled()  设置编辑框控件是否可用
+      * SetText()  设置文本
+      * SetMaxChar()  设置输入文本长度限制
+      * GetMaxChar()  获取最大输入文本长度
+      * SetReadOnly()  设置只读模式
+      * IsReadOnly() const  获取只读模式
+      * SetPasswordMode()  获取密码编辑框模式
+      * IsPasswordMode() const  设置密码编辑模式
+      * SetPasswordChar() 设置密码模式显示字符
+      * GetPasswordChar() const 获取密码模式显示字符Edit_SetPasswordChar
+      * 获取 OR 设置正常状态图
+      * GetNormalImage() 
+      * SetNormalImage()
+      * 获取 OR 设置悬浮状态图
+      * GetHotImage()
+      * SetHotImage()
+      * 获取 OR 设置获得焦点状态图
+      * GetFocusedImage()
+      * SetFocusedImage()
+      * 获取 OR 设置非可用状态图
+      * GetDisabledImage()
+      * SetDisabledImage()
+      * 获取 OR 设置原生编辑框背景色
+      * SetNativeEditBkColor()
+      * GetNativeEditBkColor() const
+      * SetPos()  得到编辑框位置
+      * SetVisible()  设置可见状态
+      * SetInternVisible()   仅供内部调用，有些UI拥有窗口句柄，需要重写此函数
+      * EstimateSize()  预估控件大小
+      * DoEvent()  处理事件
+      * SetAttribute()  设置属性
+      * PaintStatusImage()  绘制状态图
+      * PaintText()  绘制文本
+      * CEditWnd* m_pWindow  原生编辑框窗口
+      * UINT m_uMaxChar  文本长度限制
+      * bool m_bReadOnly  只读方式
+      * bool m_bPasswordMode  显示密码模式
+      * TCHAR m_cPasswordChar  密码模式显示的字符
+      * UINT m_uButtonState  编辑框状态
+      * CStdString m_sNormalImage  正常状态图
+      * CStdString m_sHotImage  悬浮状态图
+      * CStdString m_sFocusedImage  获取焦点状态图
+      * CStdString m_sDisabledImage  不可用状态图
+      * DWORD m_dwEditbkColor  获取 OR 设置编辑框背景色
+    * [+]class CEditWnd
+      * CEditWnd()  构造函数
+      * void Init() 初始化
+      * RECT CalPos() 计算位置
+      * LPCTSTR GetWindowClassName() 得到窗口类名
+      * LPCTSTR GetSuperClassName() 得到超类化名
+      * void OnFinalMessage() 窗口被摧毁后，最后消息处理
+      * LRESULT HandleMessage() 处理消息
+      * LRESULT OnKillFocus() 失去焦点消息
+      * LRESULT OnEditChanged() 文本内容改变
+      * CEditUI* m_pOwner 编辑框窗口拥有者
+      * HBRUSH m_hBkBrush 背景画刷
+  * 滚动条控件
+      * * [+]class CScrollBarUI
+      * CScrollBarUI()
+      * GetClass()   返回控件名
+      * GetInterface()  得到对象指针
+      * CContainerUI* GetOwner()   得到滚动条拥有者
+      * SetOwner() 设置滚动条拥有者
+      * SetEnabled() 设置滚动条是否可用
+      * SetFocus()
+      * IsHorizontal() 获取滚动条方向
+      * SetHorizontal()设置滚动条横竖方向
+      * GetScrollRange()  得到滚动条范围
+      * SetScrollRange() 设置滚动条范围
+      * GetScrollPos()  得到滚动块位置
+      * SetScrollPos() 设置滚动块位置
+      * GetLineSize()  得到步长大小
+      * SetLineSize() 设置步长大小
+      * 获取 OR 设置 上或左位置的按钮 显示状态 正常状态图 悬浮状态图 按下状态图 非可用状态图
+        * GetShowButton1() 获取 OR 设置显示上左按钮
+        * SetShowButton1()
+        * GetButton1NormalImage()
+        * SetButton1NormalImage()
+        * GetButton1HotImage()
+        * SetButton1HotImage()
+        * GetButton1PushedImage()
+        * SetButton1PushedImage()
+        * GetButton1DisabledImage()
+        * SetButton1DisabledImage()
+      * 获取 OR 设置 下或右位置的按钮 显示状态 正常状态图 悬浮状态图 按下状态图 非可用状态图
+        * GetShowButton1() 获取 OR 设置显示上左按钮
+        * GetShowButton2()
+        * SetShowButton2()
+        * GetButton2NormalImage()
+        * SetButton2NormalImage()
+        * GetButton2HotImage()
+        * SetButton2HotImage()
+        * GetButton2PushedImage()
+        * SetButton2PushedImage()
+        * GetButton2DisabledImage()
+        * SetButton2DisabledImage()
+      * 获取 OR 设置 滚动块 正常状态图 悬浮状态图 按下状态图 非可用状态图
+        * GetThumbNormalImage()
+        * SetThumbNormalImage()
+        * GetThumbHotImage()
+        * SetThumbHotImage()
+        * GetThumbPushedImage()
+        * SetThumbPushedImage()
+        * GetThumbDisabledImage()
+        * SetThumbDisabledImage()
+      * 获取 OR 设置 滚动轨迹 正常状态图 悬浮状态图 按下状态图 非可用状态图
+        * GetRailNormalImage()
+        * SetRailNormalImage()
+        * GetRailHotImage()
+        * SetRailHotImage()
+        * GetRailPushedImage()
+        * SetRailPushedImage()
+        * GetRailDisabledImage()
+        * SetRailDisabledImage()
+      * 获取 OR 设置 滚动条 背景图 悬浮状态图 按下状态图 非可用状态图
+        * GetBkNormalImage()
+        * SetBkNormalImage()
+        * GetBkHotImage()
+        * SetBkHotImage()
+        * GetBkPushedImage()
+        * SetBkPushedImage()
+        * GetBkDisabledImage()
+        * SetBkDisabledImage()
+      * SetPos() 设置滚动条
+      * DoEvent() 事件处理
+      * SetAttribute() 设置属性
+      * DoPaint() 绘制
+      * PaintBk() 绘制背景
+      * PaintButton1() 绘制上或左向的按钮
+      * PaintButton2()绘制下或右位置的按钮
+      * PaintThumb() 绘制滚动块
+      * PaintRail()绘制滚动轨迹
+      * DEFAULT_SCROLLBAR_SIZE = 16, 滚动条默认大小
+      * DEFAULT_TIMERID = 10, 默认计时器id
+      * bool m_bHorizontal 滚动条横纵方向
+      * int m_nRange 范围
+      * int m_nScrollPos 滚动块位置
+      * int m_nLineSize 步长
+      * CContainerUI* m_pOwner 滚动条拥有者
+      * POINT ptLastMouse 鼠标位置
+      * int m_nLastScrollPos 滚动块位置
+      * int m_nLastScrollOffset 滚动块偏移量 未使用
+      * int m_nScrollRepeatDelay 未使用
+      * CStdString m_sBkNormalImage
+      * CStdString m_sBkHotImage
+      * CStdString m_sBkPushedImage
+      * CStdString m_sBkDisabledImage
+      * bool m_bShowButton1
+      * RECT m_rcButton1
+      * UINT m_uButton1State
+      * CStdString m_sButton1NormalImage
+      * CStdString m_sButton1HotImage
+      * CStdString m_sButton1PushedImage
+      * CStdString m_sButton1DisabledImage
+      * bool m_bShowButton2
+      * RECT m_rcButton2
+      * UINT m_uButton2State
+      * CStdString m_sButton2NormalImage
+      * CStdString m_sButton2HotImage
+      * CStdString m_sButton2PushedImage
+      * CStdString m_sButton2DisabledImage
+      * RECT m_rcThumb
+      * UINT m_uThumbState
+      * CStdString m_sThumbNormalImage
+      * CStdString m_sThumbHotImage
+      * CStdString m_sThumbPushedImage
+      * CStdString m_sThumbDisabledImage
+      * CStdString m_sRailNormalImage
+      * CStdString m_sRailHotImage
+      * CStdString m_sRailPushedImage
+      * CStdString m_sRailDisabledImage
+      * CStdString m_sImageModify
+  * 布局器(容器)
+    * [+]class IContainer 容器虚基类
+      * GetItemAt()  [v]得到容器中控件项
+      * GetItemIndex()  [v]按序号获取容器中控件项
+      * SetItemIndex()  [v]设置控件项为容器中存在的指定序号的控件项
+      * GetCount()  [v]获取容器控件项数
+      * Add()  [v]增加一个控件到容器中
+      * AddAt()  [v]插入一个控件到容器中
+      *  Remove()  [v]删除容器中控件项
+      *  RemoveAt()  [v]删除指定序号的容器控件项
+      *  RemoveAll()  [v]删除所有容器中的控件
+    * [+]class CContainerUI 容器控件
+      * CContainerUI()  构造函数
+      * ~CContainerUI()  析构函数
+      * GetInterface()  得到控件指针
+      * GetClass()  得到控件类名
+      * GetItemAt()  得到容器中控件项
+      * GetItemIndex()  按序号获取容器中控件项
+      * SetItemIndex()  设置控件项为容器中存在的指定序号的控件项
+      * GetCount()  获取容器控件项数
+      * Add()  增加一个控件到容器中
+      * AddAt()  插入一个控件到容器中
+      * Remove()  删除容器中控件项
+      * RemoveAt()  删除指定序号的容器控件项
+      * DoEvent()  事件处理
+      * SetVisible()  设置容器是否可见
+      * SetInternVisible()  仅供内部调用，有些UI拥有窗口句柄，需要重写此函数
+      * SetMouseEnabled()  设置是否处理鼠标事件
+      * 获取 OR 设置内边距，相当于设置客户区
+        * GetInset() -
+        * SetInset() -
+      * 获取 OR 设置容器内控件项是否自动摧毁
+        * IsAutoDestroy()
+        * SetAutoDestroy()
+      * 获取 OR 设置容器本身是否延迟摧毁
+        * IsDelayedDestroy()
+        * SetDelayedDestroy()
+      ?获取 OR 设置容器中控件是否响应鼠标事件
+        * IsMouseChildEnabled()
+        * SetMouseChildEnabled()
+      * FindSelectable()  查找容器中下一个可选项
+      * SetPos()  设置位置
+      * DoPaint()  绘制
+      * SetAttribute()  设置属性
+      * SetManager()  设置界面管理者
+      * GetScrollPos()  获取滚动块位置
+      * GetScrollRange()  获取滚动条范围
+      * LineUp()  向上一行（一行为默认字体高度）
+      * LineDown()  向下一行
+      * PageUp()  向上一页（？）
+      * PageDown()  向下一页（？）
+      * HomeUp()  最上
+      * EndDown()  最下
+      * LineLeft()  向左一行（8个像素）
+      * LineRight()  向右一行（8个像素）
+      * PageLeft()  向左一页
+      * PageRight()  向右一页
+      * HomeLeft()  最左
+      * EndRight()  最右
+      * EnableScrollBar()  滚动条可用
+      * GetVerticalScrollBar()  得到纵向滚动条
+      * GetHorizontalScrollBar()  得到横向滚动条
+      * SetFloatPos()  设置悬浮位置
+      * ProcessScrollBar() 处理滚动条
+      * m_items 容器中的空间项
+      * m_rcInset 设置内边距 客户区
+      * m_iChildPadding 控件项间距
+      * m_bAtuoDestroy  自动摧毁子控件
+      * m_bMouseChildEnabled  鼠标可用
+      * m_bScrollProcess  是否处理滚动
+      * m_pVerticalScrollBar  是否使用横滚动条
+      * m_pHorizontalScrollBar  是否使用纵滚动条
+    * [+]class CVerticalLayoutUI 纵向布局的容器控件
+      * CVerticalLayoutUI()
+      * GetInterface()  得到控件指针
+      * GetClass()  得到控件类名
+      * GetControlFlags()  得到控件的类型标志
+      * 分割栏高度
+        * SetSepHeight()
+        * GetSepHeight()
+      * SetSepImmMode() 设置刷新模式 立即刷新或延时刷新
+      * IsSepImmMode() 获取刷新模式
+      * SetAttribute()  设置属性
+      * DoEvent() 处理事件
+      * SetPos() 设置位置
+      * DoPostPaint() 绘制
+      * GetThumbRect() 获取欲刷新的区域
+      * m_iSepHeight 分隔栏高度
+      * m_uButtonState 容器控件状态
+      * ptLastMouse 鼠标位置
+      * m_rcNewPos 刷新区域
+      * m_bImmMode 立即刷新模式
+    * [+]class CHorizontalLayoutUI 横向布局的容器控件
+      * CHorizontalLayoutUI()  构造
+      * GetInterface()  得到控件指针
+      * GetClass()  得到控件类名
+      * GetControlFlags()  得到控件的类型标志
+      * 获取 OR 设置分隔栏宽度
+        * SetSepWidth()
+        * GetSepWidth()
+      * 获取 OR 设置刷新模式
+        * SetSepImmMode()
+        * IsSepImmMode()
+      * SetAttribute()  设置属性
+      * DoEvent()  处理事件
+      *  SetPos()  设置容器位置及容器中控件项位置
+      *  DoPostPaint()  延迟绘制
+      *  GetThumbRect()  获取刷新区域
+      *  m_iSepWidth  分隔栏宽度
+      *  m_uButtonState  控件状态
+      *  ptLastMouse  鼠标位置
+      *  m_rcNewPos  设置位置
+      *  m_bImmMode  立即刷新模式
+    * [+]class CTileLayoutUI  平铺布局
+      * CTileLayoutUI()  构造
+      * GetClass()  得到控件类名
+      * GetControlFlags()  得到控件的类型标志
+      * SetPos()  设置容器及其容器内控件项位置
+      * 获取 OR 设置 布局列数
+        * GetColumns()
+        * SetColumns()
+      * SetAttribute()  设置属性
+      * m_nColumns  布局列数
+    * [+]class CDialogLayoutUI 对话框容器控件
+      * CDialogLayoutUI() 构造
+      * GetInterface()  得到控件指针
+      * GetClass()  得到控件类名
+      * SetStretchMode() 拉伸模式
+      * SetPos() 设置容器及其容器内控件项位置
+      * EstimateSize() 预估大小
+      * RecalcArea() 重新计算区域 
+      * STRETCHMODE 拉伸模式结构
+      * m_aModes 拉伸模式列表
+    * [+]class CTabLayoutUI 标签页容器
+      * CTabLayoutUI() 构造
+      * GetInterface()  得到控件指针
+      * GetClass()  得到控件类名
+      * Add() 向容器中添加控件，如果不是选中项则设置为非可见
+      * AddAt() 将控件添加到容器控件列表的指定位置，不为选中项为非可见
+      * Remove() 移除控件
+      * RemoveAll() 移除所有控件
+      * GetCurSel() const 得到当前选中的控件项(可见控件)
+      * SelectItem() 设置控件项为选中项(设置为可见控件)
+      * SetPos() 设置容器及其控件位置
+      * SetAttribute() 设置属性
+      * m_iCurSel  当前选中控件(可见)
+  * ActiveX控件
+    * 关系图
+      <img src=duilib_sa_html/duilib_activex.jpg>
+    * 描述 
+      CActiveXCtrl 是一个ActiveX对象的容器
+      CActiveXWnd 是一个窗口供有窗口需要的ActiveX对象使用
+      CActiveXUI 为主要类包装了CActiveXCtrl和CActiveXWnd作为控件供用户使用
+      CSafeRelease CActiveXEnum CActiveXFrameWnd为辅助类提供辅助功能
+    * [+]class CSafeRelease 安全释放对象t
+      * CSafeRelease() 构造
+      * ~CSafeRelease() 析构
+      * Detach() 分离
+      * T* m_p 对象指针
+    * [+]CActiveXUI
+      * CActiveXUI() 构造
+      * ~CActiveXUI() 析构
+      * GetClass() 得到控件类名
+      * GetInterface() 得到控件指针
+      * GetHostWindow() 得到宿主窗口句柄
+      * 获取 OR 设置延时创建activeX控件
+        * IsDelayCreate()
+        * SetDelayCreate()
+        * CreateControl() 按clsid创建控件
+        * CreateControl() 按activeX名创建控件
+      * GetControl(const IID iid, LPVOID* ppRet) 获取控件接口
+      * GetClisd() const得到ActiveX控件id
+      * GetModuleName() const 得到控件名称
+      * SetModuleName(LPCTSTR pstrText) 设置控件名称
+      * SetVisible(bool bVisible = true) 设置是否可见
+      * SetInternVisible(bool bVisible = true) 
+      * SetPos(RECT rc) 设置控件位置
+      * DoPaint(HDC hDC, const RECT& rcPaint) 绘制
+        * 实现 调用CActiveXCtrl::IViewObject::Draw()
+      * SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue)设置控件属性
+      * MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)消息处理
+        * 实现
+          通过m_bCaptured属性判断是否捕获鼠标时间
+          通过IViewObjectEx::QueryHitPoint()判断鼠标是否在控件区域内
+          如果是捕获或在区域内则处理鼠标消息,否则不处理
+          调用IOleInPlaceSiteWindowless::OnWindowMessage()处理消息
+      * ReleaseControl() 释放控件
+        * 实现
+          设置宿主窗口句柄为空
+          得到IObjectWithSite接口对象
+          IObjectWithSite::SetSite(NULL)
+          IObjectWithSite::Release()
+          IOleObject::Close(OLECLOSE_NOSAVE)
+          IOleObject::SetClientSite(NULL)
+          IOleObject::Release()
+          CActiveCtrl::Release()
+
+      * DoCreateControl() 创建控件
+        * 实现
+          释放控件
+          创建与clsid关联的未初始化的对象pOleControl
+          获取IOleControl
+          通过模块名调用DllGetClassObject()获取IClassFactory创建IOleControl
+          通过IOleControl枚举出IOleObject[m_pUnk]
+          新建CActiveXCtrl
+          IOleObject获取ActiveX控件状态
+          CActiveXCtrl枚举出IOleClientSite[]
+          IOleObject::SetClientSite(IOleClientSite)
+          IOleObject枚举出IPersistStreamInit
+          IPersistStreamInit::InitNew()
+          IPersistStreamInit::Release()
+          获取IViewObject 获取显示对象
+          IOleObject::DoVerb() 完成激活控件
+      * CLSID m_clsid ActiveX的ID
+      * CStdString m_sModuleNameActiveX的模块名
+      * bool m_bCreated 是否被创建
+      * bool m_bDelayCreate 是否延时创建
+      * IOleObject* m_pUnk 提供嵌入对象与其容器之间的联系
+      * CActiveXCtrl* m_pControl  ActiveX容器控件
+      * HWND m_hwndHost宿主窗口句柄
+    * [+]class CActiveXWnd
+      * Init() 创建窗口
+      * GetWindowClassName() 得到窗口类名称
+      * OnFinalMessage() 摧毁时，消息处理
+      * HandleMessage()消息处理
+        * 说明 处理WM_PAINT WM_SETFOCUS WM_KILLFOCUS WM_ERASEBKGND WM_MOUSEACTIVATE消息
+      * DoVerb() 动作
+        * 实现
+          获取IOleObject接口
+          获取IOleClientSite
+          IOleObject::DoVerb()
+      * OnMouseActivate()鼠标激活
+        * 实现 获取当前对象是否支持激活状态，如果支持则DoVerb(OLEIVERB_INPLACEACTIVATE) 
+      * OnSetFocus()设置焦点
+        * 实现 DoVerb(OLEVERB_UIACTIVATE)
+      * OnKillFocus()失去焦点
+      * OnEraseBkgnd()清除背景
+      * OnPaint()绘制
+      * CActiveXCtrl* m_pOwner 窗口拥有者
+    * [+]class CActiveXEnum
+      * 继承 IEnumUnknown 
+        枚举对象的IUnknown接口。它可用于通过一个包含多个对象的组件对象来枚举。
+      * CActiveXEnum(IUnknown* pUnk) 构造
+      * ~CActiveXEnum() 析构
+
+      * LONG m_iPos 接口队列中
+      * ULONG m_dwRef 引用
+      * IUnknown* m_pUnk IUnknow指针
+      * STDMETHOD_(ULONG,AddRef)() 引用加1
+      * STDMETHOD_(ULONG,Release)() 引用减1，如果引用为0则释放
+      * STDMETHOD(QueryInterface)(REFIID riid, LPVOID *ppvObject) 查询接口 提供 IUnknown和IEnumUnknown
+      * STDMETHOD(Next)(ULONG celt, IUnknown **rgelt, ULONG *pceltFetched) 取得一个IUnknow指针
+      * STDMETHOD(Skip)(ULONG celt) 跳过一个
+      * STDMETHOD(Reset)(void) 重置队列到开始位置
+      * STDMETHOD(Clone)(IEnumUnknown **ppenum) 拷贝一份队列 不支持
+    * [+]class CActiveXFrameWnd
+      * 功能 控制容器顶层窗口，允许容器和控件之间互相插入移除菜单，显示状态文本可用非模态对话框等
+      * CActiveXFrameWnd() 构造
+      * ~CActiveXFrameWnd() 析构
+      * ULONG m_dwRef 引用计数器
+      * CActiveXUI* m_pOwner 容器
+      * IOleInPlaceActiveObject* m_pActiveObject 提供控件与应用程序框架窗口和文档窗口直接通信的通道
+      * IUnknown接口
+        * STDMETHOD_(ULONG,AddRef)()
+        * STDMETHOD_(ULONG,Release)()
+        * STDMETHOD(QueryInterface)(REFIID riid, LPVOID *ppvObject) 
+      * IOleInPlaceFrameWindow接口
+        * STDMETHOD(InsertMenus)(HMENU /*hmenuShared*/, LPOLEMENUGROUPWIDTHS /*lpMenuWidths*/)允许容器插入菜单
+        * STDMETHOD(SetMenu)(HMENU /*hmenuShared*/, HOLEMENU /*holemenu*/, HWND /*hwndActiveObject*/) 加入混合菜单到窗口框架
+        * STDMETHOD(RemoveMenus)(HMENU /*hmenuShared*/) 移除菜单
+        * STDMETHOD(SetStatusText)(LPCOLESTR /*pszStatusText*/) 设置和现实状态文本
+        * STDMETHOD(EnableModeless)(BOOL /*fEnable*/) 非模态窗口是否可用
+        * STDMETHOD(TranslateAccelerator)(LPMSG /*lpMsg*/, WORD /*wID*/) 处理菜单快捷键
+      * IOleWindow接口
+        * STDMETHOD(GetWindow)(HWND* phwnd) 得到窗口句柄
+        * STDMETHOD(ContextSensitiveHelp)(BOOL /*fEnterMode*/) 上下文帮助是否可用
+      * IOleInPlaceUIWindow
+        * STDMETHOD(GetBorder)(LPRECT /*lprectBorder*/) 得到工具栏和小控件放置区域
+        * STDMETHOD(RequestBorderSpace)(LPCBORDERWIDTHS /*pborderwidths*/) 确认是否有放置工具栏和小控件的区域 返回 INPLACE_E_NOTOOLSPACE
+        * STDMETHOD(SetBorderSpace)(LPCBORDERWIDTHS /*pborderwidths*/) 计算边框大小
+        * STDMETHOD(SetActiveObject)(IOleInPlaceActiveObject* pActiveObject, LPCOLESTR /*pszObjName*/) 设置对象与窗口文档和框架直接通信的通道
+
+    * [+]class CActiveXCtrl
+      * 继承
+        * IOleClientSite,    由容器向嵌入对象提供位置 显示 名称 用户接口等资源
+        * IOleInPlaceSiteWindowless,  使一个无窗口对象能够响应windows消息，参与拖拽操作
+        * IOleControlSite,  提供使site对象能够管理容器中的嵌入控件的方法
+        * IObjectWithSite,  提供对象和在容器中的site的通信方式
+        * IOleContainer  枚举一个复合文档中的对象或锁处于运行状态的容器。
+        * CActiveXCtrl()
+      * IUnknown接口
+        * STDMETHOD_(ULONG,AddRef)()增加引用数
+        * STDMETHOD_(ULONG,Release)()减少引用数
+        * STDMETHOD(QueryInterface)(REFIID riid, LPVOID *ppvObject)枚举提供的接口
+      * IObjectWithSite
+        * STDMETHOD(SetSite)(IUnknown *pUnkSite) 设置site的IUnknow接口
+        * STDMETHOD(GetSite)(REFIID riid, LPVOID* ppvSite)获取site的接口
+      * IOleClientSite
+        * STDMETHOD(SaveObject)(void) 保存嵌入对象 为实现     
+        * STDMETHOD(GetMoniker)(DWORD dwAssign, DWORD dwWhichMoniker, IMoniker** ppmk) 获取名称 为实现
+        * STDMETHOD(GetContainer)(IOleContainer** ppContainer) 得到容器指针
+          * 实现 
+              先通过site的IUnknow指针m_pUnkSite枚举IID_IOleContainer
+              如果失败在调用QueryInterface枚举本身的IID_IOleContainer
+        * STDMETHOD(ShowObject)(void)
+          实现 调用IViewObject::Draw向其拥有者m_pOwner->m_hwndHost(ActiveUI中的宿主窗口)的DC绘制        
+        * STDMETHOD(OnShowWindow)(BOOL fShow)  当内嵌对象可见或不可见时通知其容器 未实现      
+        * STDMETHOD(RequestNewObjectLayout)(void) 请求容器调整显示site 未实现
+      * IOleInPlaceSiteWindowless
+        * STDMETHOD(CanWindowlessActivate)(void) 是否具有活跃性，返回S_OK
+        * STDMETHOD(GetCapture)(void) 获取是否捕获鼠标事件
+        * STDMETHOD(SetCapture)(BOOL fCapture)设置是否捕获鼠标事件
+        * STDMETHOD(GetFocus)(void)获取是否获得键盘焦点事件
+        * STDMETHOD(SetFocus)(BOOL fFocus)设置是否获得键盘焦点事件
+        * STDMETHOD(GetDC)(LPCRECT pRect, DWORD grfFlags, HDC* phDC)从容器中获取设备句柄
+        * STDMETHOD(ReleaseDC)(HDC hDC)释放其容器的设备句柄
+        * STDMETHOD(InvalidateRect)(LPCRECT pRect, BOOL fErase)设置区域无效，引起重绘
+        * STDMETHOD(InvalidateRgn)(HRGN hRGN, BOOL fErase)设置剪切区无效，引起重绘
+        * STDMETHOD(ScrollRect)(INT dx, INT dy, LPCRECT pRectScroll, LPCRECT pRectClip)使其具有滚动性
+        * STDMETHOD(AdjustRect)(LPRECT prc)被遮挡后调整形状
+        * STDMETHOD(OnDefWindowMessage)(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* plResult)向对象传递消息
+      * IOleInPlaceSiteEx
+        * STDMETHOD(OnInPlaceActivateEx)(BOOL *pfNoRedraw, DWORD dwFlags) 设置当激活时，是否重绘 
+          * 实现 
+            锁定已运行的对象
+            获取框架窗口句柄
+            处理无窗口的对象
+            如果处理失败则创建ActiveX窗口
+            设置激活状态为激活
+        * STDMETHOD(OnInPlaceDeactivateEx)(BOOL fNoRedraw) 当失去活跃状态时，是否重绘       
+        * STDMETHOD(RequestUIActivate)(void) 对象激活时通知容器
+
+      * OleInPlaceSite
+        * STDMETHOD(CanInPlaceActivate)(void) 容器是否能触发控件      
+        * STDMETHOD(OnInPlaceActivate)(void)  当容器中控件被触发时，通知容器      
+        * STDMETHOD(OnUIActivate)(void)通知容器，被控件被触发，菜单将被以混合菜单替换
+        * STDMETHOD(GetWindowContext)(IOleInPlaceFrame** ppFrame, IOleInPlaceUIWindow** ppDoc, LPRECT lprcPosRect, LPRECT lprcClipRect, LPOLEINPLACEFRAMEINFO lpFrameInfo)恢复窗口接口
+        * STDMETHOD(Scroll)(SIZE scrollExtant)滚动的像素值
+        * STDMETHOD(OnUIDeactivate)(BOOL fUndoable)通知容器重新加载接口获取焦点
+        * STDMETHOD(OnInPlaceDeactivate)(void)通知容器对象不可用
+        * STDMETHOD(DiscardUndoState)( void)从可撤销状态恢复
+        * STDMETHOD(DeactivateAndUndo)( void)进入可撤销状态
+        * STDMETHOD(OnPosRectChange)(LPCRECT lprcPosRect) 对象范围改变
+      * IOleWindow
+        * STDMETHOD(GetWindow)(HWND* phwnd) 获取窗口句柄
+        * STDMETHOD(ContextSensitiveHelp)(BOOL fEnterMode)控制上下文帮助是否可用
+      * IOleControlSite
+        * STDMETHOD(OnControlInfoChanged)(void)  信息被改变，更新信息    
+        * STDMETHOD(LockInPlaceActive)(BOOL fLock) 控件是否保持活跃      
+        * STDMETHOD(GetExtendedControl)(IDispatch** ppDisp) 获取用于包装真实控件的扩展控件的IDispatch方法
+        * STDMETHOD(TransformCoords)(POINTL* pPtlHimetric, POINTF* pPtfContainer, DWORD dwFlags)将绝对坐标转化为相对容器的相对坐标     
+        * STDMETHOD(TranslateAccelerator)(MSG* pMsg, DWORD grfModifiers) 传递快捷键到控件过程
+        * STDMETHOD(OnFocus)(BOOL fGotFocus) 获取控件焦点状态
+        * STDMETHOD(ShowPropertyFrame)(void) 是否显示控件的属性表
+      * IOleContainer
+        * STDMETHOD(EnumObjects)(DWORD grfFlags, IEnumUnknown** ppenum) 枚举容器中的对象
+        * STDMETHOD(LockContainer)(BOOL fLock)一直保持运行直到调用释放
+      * IParseDisplayName
+        * STDMETHOD(ParseDisplayName)(IBindCtx* pbc, LPOLESTR pszDisplayName, ULONG* pchEaten, IMoniker** ppmkOut)
+          功能 解析显示名称，返回一个与之对应的名称
+      * HRESULT CreateActiveXWnd()
+      * LONG m_dwRef 引用次数
+      * CActiveXUI* m_pOwner 拥有者
+      * CActiveXWnd* m_pWindow 窗口句柄
+      * IUnknown* m_pUnkSite site的IUnknow接口
+      * IViewObject* m_pViewObject 绘制IUnknow接口
+      * IOleInPlaceObjectWindowless* m_pInPlaceObject
+      * bool m_bLocked 是否锁定
+      * bool m_bFocused 是否获得焦点
+      * bool m_bCaptured 是否捕获鼠标
+      * bool m_bUIActivated 是否激活
+      * bool m_bInPlaceActive 
+      * bool m_bWindowless  是否是无窗体状态
+  * 组合控件
+    * [+]CComboUI  Combo控件
+      * CComboUI() 构造
+      * GetClass() 析构造
+      * GetInterface()
+      * DoInit()初始化
+        说明 如果选中项序号为-1设置第0项为选中项
+      * UINT GetControlFlags()
+        * 说明 返回tab切换停留属性
+      * CStdString GetText() 得到文本
+      * SetEnabled() 设置可用
+      * CStdString GetDropBoxAttributeList() 获取下拉框属性列表字符串
+      * SetDropBoxAttributeList() 设置下拉框属性列表字符串
+      * GetDropBoxSize() 得到下拉框大小
+      * SetDropBoxSize()设置下拉框大小
+      * int GetCurSel()  获取当前选中项
+      * SelectItem() 设置当前选中项
+      * SetItemIndex() 按项的控件指针获取项序号
+      * Add() 加入一项
+      * AddAt() 加入一项到列表指定位置
+      * Remove() 按项控件的指针移除一项
+      * RemoveAt() 移除指定序号的一项
+      * RemoveAll() 移除所有项
+      * Activate() 设置控件活跃
+        * 说明 如果处于非活跃状态，且下拉窗口未创建，则创建下拉窗口
+      * RECT GetTextPadding() 获取文本与控件边缘的间距
+      * SetTextPadding() 设置文本与控件边缘的间距
+      * GetNormalImage() 获取正常状态图
+      * SetNormalImage() 设置正常状态图
+      * GetHotImage() 获取活跃状态图
+      * SetHotImage()设置活跃状态图
+      * GetPushedImage() 获取按下状态图
+      * SetPushedImage() 设置按下状态图
+      * GetFocusedImage() 获取焦点状态图
+      * SetFocusedImage()设置焦点状态图
+      * GetDisabledImage() 非可用状态图
+      * SetDisabledImage() 设置非可用状态图
+      * TListInfoUI* GetListInfo() 获取列表信息
+      * SetItemFont() 设置项字体
+      * SetItemTextStyle() 设置项字体大小
+      * RECT GetItemTextPadding() 得到项文本间距
+      * SetItemTextPadding()设置项文本间距
+      * GetItemTextColor() 设置项文本色
+      * SetItemTextColor()得到项目文本色
+      * GetItemBkColor() 获取项背景色
+      * SetItemBkColor()设置项背景色
+      * GetItemImage() 获取项图
+      * SetItemImage() 设置项图
+      * GetSelectedItemTextColor() t选中状态项文本色
+      * SetSelectedItemTextColor()设置选中状态文本色
+      * GetSelectedItemBkColor() 得到选中项背景色
+      * SetSelectedItemBkColor()设置项选中状态背景图
+      * GetSelectedItemImage() 获取选中项背景图
+      * SetSelectedItemImage()设置项选中状态背景图
+      * GetHotItemTextColor() 获取项活跃状态文本色
+      * SetHotItemTextColor()设置项活跃状态文本色
+      * GetHotItemBkColor() 获取项活跃状态背景色
+      * SetHotItemBkColor()设置项活跃状态背景色
+      * GetHotItemImage() 后去项活跃状态图
+      * SetHotItemImage()设置项活跃状态图
+      * GetDisabledItemTextColor() 得到项非可用状态文本色
+      * SetDisabledItemTextColor()设置非可用项文本色
+      * GetDisabledItemBkColor() 获取项非可用状态背景色
+      * SetDisabledItemBkColor()设置项非可用状态背景色
+      * GetDisabledItemImage() 设置项非可用状态图
+      * SetDisabledItemImage()获取项非可用状态图
+      * GetItemLineColor() 获取项边框色
+      * SetItemLineColor()设置项边框色
+      * IsItemShowHtml() 项是否使用内嵌html标识语言
+      * SetItemShowHtml()设置项是否使用内嵌html标识语言
+      * EstimateSize()计算控件大小
+      * SetPos()设置控件位置
+      * DoEvent()事件处理
+      * SetAttribute()设置属性
+      * DoPaint()绘制
+      * PaintText()绘制文本
+      * PaintStatusImage()绘制状态图
+      * CComboWnd* m_pWindow 下拉框窗口
+      * int m_iCurSel 当前选中项
+      * RECT m_rcTextPadding 文本与控件边缘间距
+      * CStdString m_sDropBoxAttributes 下拉框属性
+      * SIZE m_szDropBox 下拉框窗体大小
+      * UINT m_uButtonState 控件状态
+      * CStdString m_sNormalImage 正常状态图
+      * CStdString m_sHotImage 活跃状态图
+      * CStdString m_sPushedImage 按下状态图
+      * CStdString m_sFocusedImage 获得焦点状态图
+      * CStdString m_sDisabledImage 非可用状态图
+      * TListInfoUI m_ListInfo 下拉框项的列表
+    * [-]class CComboWnd CCombo控件下拉窗体
+      * Init()初始化Combo窗口
+        实现
+          1 计算窗口创建位置
+          2 创建窗口
+      * GetWindowClassName()
+      * OnFinalMessage() 窗口被销毁时，最后消息处理函数
+      * HandleMessage()消息处理
+      * WM_CREATE:创建一个纵向排列容器控件，把项加入容器中
+      * WM_CLOSE:CComboUI::SetManager()
+      * WM_LBUTTONUP:查找当鼠标位置，如果当前位置有控件并不是滚动条控件则向自身发送失去焦点消息
+      * WM_KEYDOWN:空格键 恢复原来选项 回车键向自身发送失去焦点消息其他键交由CComboUI::DoEvent()处理
+      * WM_MOUSEWHEEL:由CComboUI::DoEvent
+      * WM_KILLFOCUS:向自身发送WM_CLOSE
+      * EnsureVisible()
+        1 计算位置
+        2 Scroll
+      * Scroll() 设置纵向滚动条位置
+      * CPaintManagerUI m_pm   绘制管理者
+      * CComboUI* m_pOwner ComboUI控件
+      * CVerticalLayoutUI* m_pLayout 纵向容器
+      * int m_iOldSel 上一次选中项
+  * 列表控件
+    * 关系图
+      <img src=duilib_sa_html/duilib_list.jpg>
+    * [-]struct tagTListInfoUI 列表属性信息
+      * int nColumns 列数量
+      * RECT rcColumn[UILIST_MAX_COLUMNS] 列位置
+      * int nFont文本字大小
+      * UINT uTextStyle文本字体
+      * RECT rcTextPadding文本与控件边框距离
+      * DWORD dwTextColor文本颜色
+      * DWORD dwBkColor背景颜色
+      * CStdString sImage背景图
+      * DWORD dwSelectedTextColor选中状态文本颜色
+      * DWORD dwSelectedBkColor选中状态背景颜色
+      * CStdString sSelectedImage选中状态图
+      * DWORD dwHotTextColor激活状态文本颜色
+      * DWORD dwHotBkColor激活状态背景颜色
+      * CStdString sHotImage激活状态图
+      * DWORD dwDisabledTextColor非可用状态文本色
+      * DWORD dwDisabledBkColor非可用状态背景色
+      * CStdString sDisabledImage非可用状态图
+      * DWORD dwLineColor 边框颜色
+      * bool bShowHtml 是否使用内嵌html标记
+      * bool bMultiExpandable
+    * [-]IListCallbackUI 
+      * GetItemText() 得到列表指定项的文本
+    * [-]IListOwnerUI 
+      * TListInfoUI* GetListInfo() 获取列表属性
+      * GetCurSel() 获取当前选中项
+      * SelectItem() 设置选中项
+      * DoEvent() 事件处理
+    * [-]IListUI 列表控件
+      * CListHeaderUI* GetHeader() 获取列表头
+      * GetList() 获取列表
+      * GetTextCallback() 获取列表回调
+      * SetTextCallback() 设置列表回调
+      * ExpandItem() 展开项
+      * GetExpandedItem() 获取展开项
+    * [+]class CListUI List控件
+      * CListUI()构造
+      * GetClass()析构
+      * GetControlFlags()控件标识
+      * GetInterface(pstrName)获得指针
+      * GetScrollSelect() 获取滚动条是否被选中
+      * SetScrollSelect() 设置滚动条被选中
+      * GetCurSel() 得到当前选中项
+      * SelectItem() 设置当前选中项 可设置是否获得焦点
+      * GetHeader() 得到列表头指针
+      * GetList() 得到列表体指针
+      * GetListInfo() 得到列表属性
+      * GetItemAt(iIndex) 按序号获取列表项
+      * GetItemIndex(pControl) 按控件指针获取序号
+      * SetItemIndex(pControl, iIndex) 设置列表项
+      * GetCount() 得到列表项数
+      * Add(pControl) 加入一个控件
+      * AddAt(pControl, iIndex) 加入一个控件到指定位置
+      * Remove(pControl) 移除制定控件
+      * RemoveAt(iIndex) 移除指定序号的项
+      * RemoveAll() 移除所有
+      * EnsureVisible(iIndex) 确保显示第iIndex项
+      * Scroll(dx, int dy) 滚动
+      * GetChildPadding() 获取子控件间距
+      * SetChildPadding(iPadding) 设置子控件间距
+      * SetItemFont(index) 设置字体
+      * SetItemTextStyle(uStyle) 设置文本类型
+      * SetItemTextPadding(rc) 设置文本间距
+      * SetItemTextColor(dwTextColor) 设置文本色
+      * SetItemBkColor(dwBkColor) 设置背景色
+      * SetItemBkImage(pStrImage) 设置背景图
+      * SetAlternateBk(bAlternateBk) 设置备用背景属性
+      * SetSelectedItemTextColor(dwTextColor) 设置选中项文本色 
+      * SetSelectedItemBkColor(dwBkColor) 设置选中项背景色
+      * SetSelectedItemImage(pStrImage) 设置选中项背景图
+      * SetHotItemTextColor(dwTextColor) 设置活跃项文本色
+      * SetHotItemBkColor(dwBkColor) 设置活跃项背景色
+      * SetHotItemImage(pStrImage) 设置活跃项背景图
+      * SetDisabledItemTextColor(dwTextColor) 设置非可用项文本色
+      * SetDisabledItemBkColor(dwBkColor) 设置非可用项背景色
+      * SetDisabledItemImage(pStrImage) 设置非可用项背景图
+      * SetItemLineColor(dwLineColor) 设置项边框色
+      * IsItemShowHtml() 获取项是否使用内嵌html标识
+      * SetItemShowHtml(bShowHtml = true) 设置项是否使用内嵌html标识
+      * GetItemTextPadding() 获取文本间距
+      * GetItemTextColor() 获取文本颜色
+      * GetItemBkColor() 获取项背景色
+      * GetItemBkImage() 获取项背图
+      * IsAlternateBk() 获取备用背景属性
+      * GetSelectedItemTextColor() 获取选中项文本色
+      * GetSelectedItemBkColor() 获取选中项背景色
+      * GetSelectedItemImage() 获取选中项背景图
+      * GetHotItemTextColor() 获取激活状态项文本色
+      * GetHotItemBkColor() 获取激活状态项背景色
+      * GetHotItemImage() 获取激活状态项背景图
+      * GetDisabledItemTextColor() 获取非可用项文本色
+      * GetDisabledItemBkColor() 获取非可用项背景色
+      * GetDisabledItemImage() 获取非可用状态项背景图
+      * GetItemLineColor() 获取项边框色
+      * SetMultiExpanding(bMultiExpandable) 设置多项展开属性
+      * GetExpandedItem() 获取展开项序号
+      * ExpandItem(iIndex, bool bExpand = true) 展开项
+      * SetPos(rc) 设置位置
+      * DoEvent(TEventUI& event) 事件处理
+      * SetAttribute(pstrName, LPCTSTR pstrValue) 设置属性
+      * GetTextCallback() 获取文本回调
+      * SetTextCallback(pCallback) 设置文本回调
+      * GetScrollPos() 获取滚动条位置
+      * GetScrollRange() 获取滚动条范围
+      * SetScrollPos(szPos) 设置滚动条位置
+      * LineUp() 向上一行
+      * LineDown() 向下一行
+      * PageUp() 向上一页
+      * PageDown() 向下一页
+      * HomeUp() 置顶
+      * EndDown() 置低
+      * LineLeft() 向左一列
+      * LineRight() 向右一列
+      * PageLeft() 向左一页
+      * PageRight() 向右一页
+      * HomeLeft() 置左
+      * EndRight() 置右
+      * EnableScrollBar() 设置是否使用滚动条
+      * GetVerticalScrollBar() 获取纵向滚动条
+      * CScrollBarUI* GetHorizontalScrollBar() 获取横向滚动条
+      * m_bScrollSelect 滚动条被选中
+      * m_iCurSel 当前选中项
+      * m_iExpandedItem 展开项
+      * m_pCallback 回调
+      * m_pList CListBodyUI 列体指针
+      * m_pHeader 表头
+      * m_ListInfo 表属性
+    * [+]class CListBodyUI 
+      * CListBodyUI() 构造
+      * SetScrollPos() 设置滚动条位置
+      * SetPos() 设置位置
+      * DoEvent() 事件处理
+      * CListUI* m_pOwner 拥有者指针
+    * [+]class ClistHeaderUI 列表头
+      * CListHeaderUI()构造
+      * GetClass()获取类名
+      * GetInterface()接口指针
+      * EstimateSize()计算大小
+    * [+]class CListHeaderItemUI  
+      * CListHeaderItemUI()构造
+      * GetClass()类名
+      * GetInterface()得到接口
+      * GetControlFlags()控件标志
+      * SetEnabled() 获取是否可用
+      * IsDragable() 获取是否支持拖拽
+      * SetDragable() 设置是否可拖拽
+      * GetSepWidth() 获取分隔条宽度
+      * SetSepWidth() 设置分隔条宽度
+      * GetTextStyle() 获取文本类型
+      * SetTextStyle() 设置文本类型
+      * GetTextColor() 获取文本颜色
+      * SetTextColor() 设置文本颜色
+      * SetTextPadding() 设置文本间距
+      * GetTextPadding() 获取文本间距
+      * SetFont() 设置文本
+      * IsShowHtml() 获取是否使用内嵌html标记
+      * SetShowHtml() 设置使用内嵌html标记
+      * GetNormalImage() 获取正常状态图
+      * SetNormalImage() 设置正常状态图
+      * GetHotImage() 获取激活状态图
+      * SetHotImage() 设置激活状态图
+      * GetPushedImage() 获取按下状态图
+      * SetPushedImage() 设置按下状态图
+      * GetFocusedImage() 获取焦点状态图
+      * SetFocusedImage() 设置焦点状态图
+      * GetSepImage() 获取分隔条背景图
+      * SetSepImage() 设置分隔条背景图
+      * DoEvent() 时间处理
+      * EstimateSize() 计算宽度
+      * SetAttribute() 设置属性
+      * GetThumbRect() 获取宽度
+      * PaintText() 绘制文本
+      * PaintStatusImage() 绘制状态图
+      * POINT ptLastMouse 鼠标位置
+      * bool m_bDragable 可拖拽属性
+      * UINT m_uButtonState 控件状态
+      * int m_iSepWidth 分隔条宽度
+      * DWORD m_dwTextColor 文本颜色
+      * int m_iFont 字体
+      * UINT m_uTextStyle 文本类型
+      * bool m_bShowHtml 是否使用内嵌html
+	  * RECT m_rcTextPadding 文本间距
+      * CStdString m_sNormalImage 正常状态背景图
+      * CStdString m_sHotImage 激活状态背景图
+      * CStdString m_sPushedImage 按下状态背景图
+      * CStdString m_sFocusedImage 获得焦点背景图
+      * CStdString m_sSepImage 分隔条背景图
+      * CStdString m_sSepImageModify 分各条背景图2
+    * IListItemUI 列表项
+      * GetIndex() 得到项序号
+      * SetIndex() 设置项序号
+      * IListOwnerUI* GetOwner()获取列表拥有者
+      * SetOwner() 设置列表拥有者
+      * IsSelected() 获取是否被选中
+      * Select()设置被选中
+      * IsExpanded()获取是否展开项
+      * Expand()设置是否展开项
+      * DrawItemText()绘制项的文本
+    * [+]class CListElementUI 列表元素
+      * CListElementUI()构造
+      * GetClass()类名
+      * GetControlFlags()  控件标志 用回车换行
+      * GetInterface()
+      * SetEnabled()
+      * GetIndex()  得到列表元素序号
+      * SetIndex() 设置列表元素序号
+      * IListOwnerUI* GetOwner() 获取列表元素拥有者
+      * SetOwner() 设置列表元素拥有者
+      * SetVisible() 设置列表元素可见性
+      * IsSelected()  获取是否被选择
+      * Select() 设置被选中
+      * IsExpanded()  永远返回false
+      * Expand() 永远返回false
+      * Invalidate()  直接CControl::Invalidate会导致滚动条刷新，重写减少刷新区域
+      * Activate() 激活列表元素状态
+      * DoEvent()事件处理
+      * SetAttribute()设置列表元素属性
+      * DrawItemBk()绘制列表元素背景色
+      * int m_iIndex 列表元素序列号
+      * bool m_bSelected 是否被选中
+      * UINT m_uButtonState 列表元素状态
+      * IListOwnerUI* m_pOwner 列表元素拥有者
+    * [+]class CListLabelElementUI 
+      * CListLabelElementUI() 构造
+      * GetClass() 类名
+      * GetInterface() 接口
+      * DoEvent()事件处理
+      * EstimateSize()计算位置
+      * DoPaint()绘制
+      * DrawItemText()绘制列表项文本
+    * [+]class CListTextElementUI 
+      * CListTextElementUI() 构造
+      * ~CListTextElementUI() 析构
+      * GetClass() 类名
+      * GetInterface() 接口
+      * GetControlFlags() 控件标志
+      * GetText() const得到文本
+      * SetText() 设置文本
+      * SetOwner() 设置拥有者
+      * GetLinkContent() 得到超连接内容
+      * DoEvent() 处理事件
+      * EstimateSize() 计算位置
+      * DrawItemText() 绘制文本
+      * enum { MAX_LINK = 8 } 最大超连接数
+      * int m_nLinks 当前超连接数目
+      * RECT m_rcLinks[MAX_LINK] 链接文本区域
+      * CStdString m_sLinks[MAX_LINK] 链接文本文字
+      * int m_nHoverLink 
+      * IListUI* m_pOwner 拥有者
+      * CStdPtrArray m_aTexts 列表中列项得文本
+    * [+]class CListContainerElementUI 
+      * CListHeaderItemUI()构造
+      * GetClass() 类名
+      * GetInterface() 接口
+      * GetControlFlags() 控件标志
+      * SetEnabled() 设置是否可用
+      * IsDragable() 获取是否可拖拽
+      * SetDragable() 设置是否可拖拽
+      * GetSepWidth() 获取分割条宽度
+      * SetSepWidth() 设置分隔条宽度
+      * GetTextStyle() 获取文本类型
+      * SetTextStyle() 设置文本类型
+      * GetTextColor() 获取文本颜色
+      * SetTextColor() 设置文本颜色
+      * SetTextPadding() 设置文本间距
+      * GetTextPadding() 获取文本间距
+      * SetFont() 设置文本
+      * IsShowHtml() 显示内嵌html
+      * SetShowHtml() 设置内嵌html
+      * GetNormalImage() 获取正常状态图
+      * SetNormalImage() 设置正常状态图
+      * GetHotImage() 获取激活状态图
+      * SetHotImage() 设置激活状态图
+      * GetPushedImage() 获取按下状态图
+      * SetPushedImage() 设置按下状态图
+      * GetFocusedImage()  获取焦点状态图
+      * SetFocusedImage() 设置焦点状态图
+      * GetSepImage() 获取分各条背景图
+      * SetSepImage() 设置分隔条背景图
+      * DoEvent() 时间处理
+      * EstimateSize() 计算大小
+      * SetAttribute() 设置属性
+      * GetThumbRect() 获取区域
+      * PaintText() 绘制文本
+      * PaintStatusImage() 绘制状态图
+
+      * POINT ptLastMouse 鼠标位置
+      * bool m_bDragable 拖拽支持属性
+      * UINT m_uButtonState 控件状态
+      * int m_iSepWidth 分隔条宽度
+      * DWORD m_dwTextColor 文本颜色
+      * int m_iFont 文本字体
+      * UINT m_uTextStyle文本类型
+      * bool m_bShowHtml是否支持内嵌html
+	  * RECT m_rcTextPadding 文本间距
+      * CStdString m_sNormalImage 正常状态图
+      * CStdString m_sHotImage 激活状态图
+      * CStdString m_sPushedImage 按下状态图
+      * CStdString m_sFocusedImage 焦点状态图
+      * CStdString m_sSepImage 分隔条背景图
+      * CStdString m_sSepImageModify 分分隔背景图2
+  * 富文本框控件
+    * [+]class CRichEditUI 富文本框控件
+      * 继承 
+        * [+]CContainerUI 
+        * [+]IMessageFilterUI
+      * 描述
+        与CTxtWinHost配合实现富文本框控件
+        通过向CTxtWinHost发送消息或调用CTxtWinHost的方法实现
+      * CRichEditUI() 构造
+      * ~CRichEditUI() 析构
+      * GetClass() 获取类名
+      * LPVOID GetInterface() 获取类接口
+      * GetControlFlags() 获取控件属性
+      * IsWantTab() 获取是否相应tab事件
+      * SetWantTab()设置是否相应tab事件
+      * IsWantReturn()获取是否相应回车事件 
+      * SetWantReturn()设置是否相应回车事件
+      * IsWantCtrlReturn()获取是否相应ctrl+回车事件 
+      * SetWantCtrlReturn()设置是否相应ctrl+回车事件
+      * IsRich()是否为富文本模式
+      * SetRich()设置富文本模式
+      * IsReadOnly()是否为只读
+      * SetReadOnly()设置为只读
+      * GetWordWrap()是否平铺排列
+      * SetWordWrap()设置平铺排列
+      * GetFont()获取文本大小
+      * SetFont()设置文本大小
+      * SetFont()设置字体
+      * LONG GetWinStyle()获取对象属性
+      * SetWinStyle()设置对象属性
+      * GetTextColor()获取文本颜色
+      * SetTextColor()设置文本颜色
+      * GetLimitText()获取文本字数限制
+      * SetLimitText()设置文本字数限制
+      * GetTextLength()得到文本长度
+      * CStdString GetText()得到文本
+      * SetText()设置文本
+      * GetModify() 获取控件标志是否被改变
+      * SetModify()设置控件改变标志
+      * GetSel()获取选中内容
+      * GetSel()获取选中内容
+      * SetSel()设置选中内容
+      * SetSel()设置选中内容
+      * ReplaceSel()替换被选中文本
+      * ReplaceSelW()替换被选中文本（宽字符）
+      * CStdString GetSelText()得到选中文本
+      * SetSelAll()全选
+      * SetSelNone()全取消
+      * GetSelectionType() 得到选中内容的类型
+      * GetZoom()获取缩放
+      * SetZoom()设置缩放
+      * SetZoomOff()取消缩放
+      * GetAutoURLDetect()获取URL地址是否自动探测
+      * SetAutoURLDetect()设置URL地址是否自动探测
+      * GetEventMask()获取是否屏蔽事件
+      * SetEventMask()设置是否屏蔽事件
+      * CStdString GetTextRange()获取文本范围
+      * HideSelection()隐藏选中区域
+      * ScrollCaret()显示插入符
+      * InsertText()插入文本
+      * AppendText()增加文本
+      * GetDefaultCharFormat()获取默认文本格式
+      * SetDefaultCharFormat()设置默认文本格式
+      * GetSelectionCharFormat()获取默认段落格式
+      * SetSelectionCharFormat()设置默认段落格式
+      * SetWordCharFormat()设置文本格式
+      * GetParaFormat()获取段落格式
+      * SetParaFormat()设置段落格式
+      * Redo() 重做
+      * Undo() 撤销
+      * Clear() 清除
+      * Copy() 复制
+      * Cut() 剪切
+      * Paste() 粘帖
+      * GetLineCount() 得到行数
+      * CStdString GetLine() 得到某行
+      * LineIndex() 获取某行起始序号
+      * LineLength() 获取某行长度
+      * LineScroll() 滚动行
+      * CPoGetCharPos()获取文本位置
+      * LineFromChar() 获取某文本所在行
+      * CPoPosFromChar() 获取某文本所在位置
+      * CharFromPos() 获取某位置的文本
+      * EmptyUndoBuffer() 清空撤销缓存
+      * SetUndoLimit() 设置撤销次数限制
+      * StreamIn() 按自定义格式流替换内容
+      * StreamOut() 按自定义格式流传递内容
+      * DoInit() 初始化
+        * 注意
+          TxSendMessage和SendMessage是有区别的，TxSendMessage没有multibyte和unicode自动转换的功能，
+          而richedit2.0内部是以unicode实现的，在multibyte程序中，必须自己处理unicode到multibyte的转换
+      * TxSendMessage() 发送消息
+      * IDropTarget* GetTxDropTarget() 获取拖拽目标
+      * OnTxViewChanged() 显示被改变
+      * OnTxNotify()事件通知
+      * SetScrollPos()设置滚动条位置
+      * LineUp()滚动条向上
+      * LineDown()滚动条向下
+      * PageUp()滚动条向上翻页
+      * PageDown()滚动条向下翻页
+      * HomeUp()滚动条到顶部
+      * EndDown()滚动条到底部
+      * LineLeft()滚动条向左
+      * LineRight()滚动条向右
+      * PageLeft()向左翻页
+      * PageRight()向右翻页
+      * HomeLeft()滚动条到左端
+      * EndRight()滚动条到右端
+      * SIZE EstimateSize() 计算大小
+      * SetPos()设置位置
+      * DoEvent()
+      * DoPaint() 绘制
+        * 实现
+          * 控件本身绘制CControlUI::DoPaint()
+          * 富文本框绘制m_pTwh->GetTextServices()
+      * SetAttribute() 设置属性
+      * MessageHandler() 消息吹
+      * CTxtWinHost* m_pTwh host指针
+      * bool m_bVScrollBarFixing 纵向滚动条
+      * bool m_bWantTab
+      * bool m_bWantReturn
+      * bool m_bWantCtrlReturn
+      * bool m_bRich
+      * bool m_bReadOnly
+      * bool m_bWordWrap
+      * DWORD m_dwTextColor
+      * int m_iFont
+      * int m_iLimitText
+      * LONG m_lTwhStyle
+    [-]class CTxtWinHost 获得富文本服务
+      * 继承 
+        * [+]ITextHost
+      * 描述 
+        获取富文本服务接口指针，操纵其接口。
+        ITextServices::OnTxPropertyBitsChange()
+      * CTxtWinHost()  构造
+      * Init() 初始化
+      * 初始化文本格式
+      * 初始化段落格式
+      * 设置属性
+      * CreateTextServices()创建文本服务组件获取IUnknow接口
+      * QueryInterface()获取富文本服务接口指针 
+      * 设置控件的文本
+      * ~CTxtWinHost() 析构
+      * ITextServices* GetTextServices() 获取富文本服务接口指针
+      * SetClientRect() 设置客户端大小
+      * RECT* GetClientRect() 获取客户端大小
+      * GetWordWrap() { return fWordWrap } 设置多行模式时是否平铺显示
+      * SetWordWrap() 获取多行模式时是否平铺显示
+      * GetReadOnly() 获取只读属性
+      * SetReadOnly() 设置只读属性
+      * SetFont()设置文本
+      * SetColor() 设置颜色
+      * SIZEL* GetExtent() 获取范围
+      * SetExtent() 设置范围
+      * LimitText() 设置字数限制
+      * IsCaptured() 获取是否捕获鼠标
+      * GetAllowBeep()获取是否允许蜂鸣
+      * SetAllowBeep()设置是否允许蜂鸣
+      * GetDefaultAlign() 获取段落对齐状态
+      * SetDefaultAlign()设置段落对齐状态
+      * GetRichTextFlag() 获取是否为富文本模式
+      * SetRichTextFlag() 设置是否为富文本模式
+      * GetDefaultLeftIndent() 获取缩进
+      * SetDefaultLeftIndent()设置缩进
+      * SetSaveSelection() 设置是否保存选中段落
+      * OnTxInPlaceDeactivate() 通知对象处于非活跃状态
+      * OnTxInPlaceActivate() 通知对象处于活跃状态
+      * GetActiveState() 获取控件活跃状态
+      * DoSetCursor()通知对象设置鼠标
+      * SetTransparent()设置对象透明
+      * GetControlRect()获得控件区域
+      * SetAccelPos()?设置加速字体位置
+      * SetPasswordChar()设置密码模式
+      * SetDisabled()设置非可用模式
+      * SetSelBarWidth() 设置鼠标跨行移动时是否整行选中
+      * GetTimerState() 获取定时器状态
+      * SetCharFormat() 设置文本属性
+      * SetParaFormat() 设置段落属性
+      * IUnknown interface
+        * QueryInterface()
+        * AddRef()
+        * Release()
+      * ITextHost interface
+        * TxGetDC() 获取设备句柄
+        * TxReleaseDC() 释放设备句柄 无操作
+        * TxShowScrollBar() 显示滚动条
+        * TxEnableScrollBar ()设置滚动条是否可见
+        * TxSetScrollRange() 设置滚动条范围
+        * TxSetScrollPos () 设置滚动条位置
+        * TxInvalidateRect() 设置无效区域
+        * TxViewChange()文本视图改变
+        * TxCreateCaret()创建插入标记
+        * TxShowCaret()显示插入标记
+        * TxSetCaretPos() 设置插入标记位置
+        * TxSetTimer() 设置定时器
+        * TxKillTimer() 销毁定时器
+        * TxScrollWindowEx ()
+        * TxSetCapture()设置鼠标捕获
+        * TxSetFocus()设置焦点
+        * TxSetCursor()设置鼠标
+        * TxScreenToClient () 绝对坐标转化成窗口相对坐标
+        * TxClientToScreen () 窗口相对坐标转化为绝对坐标
+        * TxActivate()激活
+        * TxDeactivate()解除
+        * TxGetClientRect()获取控件区域
+        * TxGetViewInset()获取文本间距
+        * TxGetCharFormat()获取文本格式
+        * TxGetParaFormat()获取段落格式
+        * TxGetSysColor()获取系统颜色
+        * TxGetBackStyle()获取控件背景类型
+        * TxGetMaxLength()获取文本限制长度
+        * TxGetScrollBars()获取滚动条信息
+        * TxGetPasswordChar()获取密码模式下显示字符
+        * TxGetAcceleratorPos()获取加速文本位置
+        * TxGetExtent()获取对象大小
+        * OnTxCharFormatChange ()更改文本格式
+        * OnTxParaFormatChange ()更改段落格式
+        * TxGetPropertyBits()获取属性设置
+        * TxNotify()相应事件通知
+        * HIMC TxImmGetContext() 获得输入法输入的内容
+        * TxImmReleaseContext()释放获取输入法输入的内容
+        * TxGetSelectionBarWidth ()获取选中块宽度
+      * CRichEditUI *m_re    富文本框控件
+      * ULONG  cRefs           引用计数器
+      * ITextServices  *pserv         富文本服务指针
+      * DWORD    dwStyle         类型
+      * unsigned  fEnableAutoWordSel  :1   自动选择整词
+      * unsigned  fWordWrap      :1   多行是否平铺
+      * unsigned  fAllowBeep      :1   是否允许嗡鸣
+      * unsigned  fRich        :1   是否为富文本框
+      * unsigned  fSaveSelection    :1   非活跃是否保存选中段落
+      * unsigned  fInplaceActive    :1  活跃
+      * unsigned  fTransparent    :1  透明
+      * unsigned  fTimer        :1   定时器
+      * unsigned    fCaptured           :1
+      * LONG    lSelBarWidth       选择栏宽度
+      * LONG      cchTextMost       文本数量限制
+      * DWORD    dwEventMask       设置消息屏蔽，让其父窗口处理消息
+      * LONG    icf 未使用
+      * LONG    ipf 未使用
+      * RECT    rcClient         控件客户区大小
+      * SIZEL    sizelExtent       区域大小
+      * CHARFORMAT2W cf           文本格式
+      * PARAFORMAT2  pf               段落格式
+      * LONG    laccelpos         加速位置
+      * WCHAR    chPasswordChar         密码模式显示字符
+
+
+  TODO:
+  [ ]确定类型
+  对ComboUI::SetItemTextPadding()测试
+  对ComboUI横向滚动条测试
+  gamedemo中ComboUI控件的使用
+
+组织格式
+1 架构
+1.1 架构图
+1 2 模块调用关系
+2 模块调用关系图
+3 模块
+ 模块中的类
+ 类文档
+4 快速入门
+
+CHANGELOG:
+    
+
+
+
+
+
+
+
+
+
+================
+vim:sts=2 expandtab fdm=marker
