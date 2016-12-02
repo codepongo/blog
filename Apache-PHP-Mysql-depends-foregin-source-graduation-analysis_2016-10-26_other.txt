@@ -1,0 +1,69 @@
+<h1>Apache+PHP+Mysql配置|depends|外国大学毕业设计代码分析</h1>
+
+
+2006年07月26日 星期三 19:19
+
+外国大学的毕业设计（两天帮同学完成的毕业设计，其实也不过如此）
+http服务器-apache www.apache.org
+下载Apache2.2.3版2进制安装包
+http://httpd.apache.org/download.cgi
+http://apache.justdn.org/httpd/binaries/win32/apache_2.2.3-win32-x86-no_ssl.msi
+开发语言-php www.php.net
+下载php5.2.0版2进制安装包
+http://www.php.net/downloads.php
+http://cn2.php.net/get/php-5.2.0-win32-installer.msi/from/a/mirror
+先安装服务器，再安装php安装，一直next就ok，其中选择apache的路径php安装程序就会自动配制好apache服务器。
+在C:\apache\htdocs下建立
+test.php
+<?
+ echo "hello,windows+apache+php!";
+?>
+浏览器访问：http://localhost/test.php如果是hello,windows+apache+php! 恭喜，配制完成！！！
+附：
+php/install.txt php安装配制文件
+depends.exe 察看DLL依赖项
+http://support.microsoft.com/kb/q194801
+http://download.microsoft.com/download/visualfoxpro7/utility/2.1.3623/w9x2kmexp/en-us/dependsx86version2.1.3623.exe
+数据库-mysql www.mysql.com
+下载mysql-5.0.27 DB和GUI Tools
+http://dev.mysql.com/downloads/
+http://dev.mysql.com/get/Downloads/MySQL-5.0/mysql-5.0.27-win32.zip/from/http://mirror.mysql-partners-jp.biz/
+http://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-gui-tools-5.0-r8-win32.msi/from/http://mirror.mysql-partners-jp.biz/
+标准
+http://www.junchenwu.com/WAI/wai-pageauth.html
+xammp差点使用的apache+php+mysql的集成环境:http://xammp.com/
+
+二、代码分析
+原代码：http://www.sidar.org/hera/
+文件结构root--+language--+en（英文）------+lang.php（界面语言）
+              |          |                |
+              |          |                +w3cg.php（w3cg规则语言）
+              |          |                       
+              |          +gb2312（中文）--+lang.php（同上）
+              |          |                |
+              |          |                +w3cg.php
+              |
+              +default.css
+              |
+              +foot.php 网页尾部，包含版权等信息
+              |
+              +form.php 表单，输入网址
+              |
+              +function.php 公用函数
+              |
+              +head.php 网页顶部，包含html的head信息
+              |
+              +main.php 主函数
+              |
+              +parse.php 解析网页html标识
+              |
+              +result.php 显示结果
+              |
+              +view.php 显示网页html代码
+              |
+              +web.php 得到网页 ※以后有用！
+具体代码：（baidu字数限制，故略。有需要联系email:zuohaitao@gmail.com）
+
+update2006.12.23
+后来被退货了，又没有时间再修改，外国老师代码审查还是很英明的，不象中国某些大学老师那么无能......
+（完）
