@@ -1,0 +1,66 @@
+#Linux File Header
+/*
+ * Name:		
+ * Desc:		
+ * Usage:
+ * Author:	
+ * Date:
+ */
+/*
+ * Change
+ * who:
+ * why:
+ * where:
+ * how:
+ */
+
+/********************************************************
+ *
+ *	$filename:$
+ *	$Purpose:$
+ *	$usage:$
+ *	$Date&Version:$
+ *	$Author:$
+ *
+ *******************************************************/
+
+#In work 
+#Function comment
+/*
+ * 名  称:	()
+ * 作  用:	
+ * 参  数:	[in] 
+ *          [out] 
+ * 返回值:	
+ * 编  写:	who [at] COMPANY
+ * 时  间:	年 月 日
+ */
+
+/*
+ * Name: ()
+ * Purpose: 
+ * Parameters: 
+ * Result: 
+ * Date: 		
+ */
+
+/* 
+ * 修  改:	
+ * 修改人:	
+ * 时  间:	
+ */
+#Visual Assist=VC6=File Header
+/*
+ * 名  称:	$end$	
+ * 作  用:	 
+ * 参  数:	
+ * 返回值:	
+ * 编  写:	who[at]COMPANY
+ * 日  期:	$YEAR$年$MONTH$月$DAY$日
+ */
+
+
+
+
+================================================================
+vim: filetype=c
