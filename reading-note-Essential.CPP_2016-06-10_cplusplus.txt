@@ -1,0 +1,151 @@
+<h1>《Essential C++》笔记</h1>
+
+
+2007年01月15日 星期一 12:33
+
+快速学习C++
+
+其中*为需要重点注意
+《Essential C++》侯捷译 Stanley B. Lippman著
+
+一、C++基础
+ 1、撰写C++程序
+ ////////////////////////////////////////
+ #include <iostream>
+ using namespace std; //让命名空间暴光
+ int main
+ {
+   cout<<"hello,C++"<<endl;
+ }
+ ///////////////////////////////////////
+ 如果main()函数的最后没有return语句，C99规定编译器要自动在生成的目标文件中（如 exe 文件）加入return 0;表示程序正常退出。
+ 2、对象的定义与初始化 ？？※const的应用
+ 3、撰写表达式
+ 4、条件语句和循环(Loop)语句
+  if (条件)
+  {
+   ...
+  }
+  else
+  {
+   ...
+  }
+  while (条件)
+  {
+   ...
+  }
+ 5、数组 Arrays off-by-one 越界(数组array[n]从array[0]开始，最后一个为array[n-1])
+ 6、指针带来的弹性 *取值 &取地址
+ 7、文件的读写
+  #include <fstream>
+  ofstream outfile ("seq_data.txt"); //写文件
+  ofstream outfile("seq_data.txt", ios_base::app); //追加形式开启
+  ifstream infile("seq_data.txt"); //读文件
+  fstream iofile("seq_data.txt", ios_base::in|ios_base::app); //读写
+
+二、面向过程的编程风格
+ 1、撰写一个函数
+  int function(int x, int *y)
+  {
+    ...
+    return 0;
+  }
+ 2、调用(invoking)一个函数
+ 3、提供默认参数值
+ 4、使用局部静态对象 const
+ 5、声明一个inline函数
+ 6、提供重载函数
+ 7、定义并使用模版函数
+  template<typename elemType>
+  int function(const int x, const elemtype y)
+  {
+    ...
+  }
+ 8、函数指针 vector<int>* (*seq_pstr)(int);
+ 9、枚举类型 enum ns_type{ns_fibon, ns_lucas, ns_pell};
+ 10、设定头文件
+
+三、泛型编程风格
+ 1、指针的算术运算 int* pi;pi+2的意义
+ 2、???Iterators泛型指针
+  vector<string> svec;
+  vector<string>::iterator iter=svec.begin();
+ 3、所有容器通用的操作
+  equality() ==
+  inequality() !=
+  assignment() =
+  empty()
+  size()
+  clear()
+  begin()
+  end()
+  insert()
+  erase()
+ 4、使用序列式容器
+ 5、使用泛型算法
+ 6、如何设计一个泛型算法
+ （1）开始我们写了一个函数，它可以找出vector内小于10的所有元素，然而函数过于死板没有弹性。
+ （2）接下来我为函数加上一个数值参数，让用户得以指定某个数值，以此和vector中的元素做比较。
+ （3）后来我又加上一个新函数:一个函数指针，让用户得以指定比较方式。
+ （4）然后我引入function object的概念，使我们得以将某组行为传给函数，此法比函数指针的做法效率更高，我们也带领各位简短地检阅了标准函数库提供的function object(所谓function object，是某种class的实体对象，这类classes对function call运算符进行了重载操作，如此一来，可使function object被当成一般函数来使用)[函数指针，指向函数]
+ （5）最后我们以template function的形式重新实现。为了支持多种容器，我们传入一对iterators，标出一组元素的范围；为了支持多种元素型别，我将元素型别参数化也将施用于元素身上的“比较操作”参数化，以便得以同时支持函数指针和function object两种方式
+ 3、TMap使用
+  map<string, int> words;
+  words["verneer"] = 1;
+  map<string, int>::iterator it;
+  it->first;
+  it->second;
+  words.find(); //如果key已置于其中，find()会返回一个iterator，指向key/value形成一个pair；反之则返回end()
+  words.count(); //返回某特定项目在map内的个数
+ set 由一群keys组合，对于任何keys值，set只能存储一份
+  set<int> iset
+   iset.insert(ival);
+   iset.insert(vec.begin(), vec.end());
+ 如何使用Iterator Inserters
+  #include <iterator>
+  back_inserter();
+  inserter(vector, iterator);
+  front_inserter();
+
+四、基于对象的编程风格
+ 1、如何实现一个class
+ class Jack
+ {
+ public:
+  //...
+ private:
+ //...
+ }
+ 2、constructor和destructor
+ 3、const
+ 4、this指针
+ 5、static class member静态的类成员 类名::静态成员函数
+ 6、iterator class
+ 7、friend class友元类
+ 8、copy assignment operator
+ 9、function object
+ 10、运算符重载
+ 11、指向类成员函数的指针
+五、面向对象编程风格
+ （1）概念：继承、多态、动态绑定
+ （2）面向对象思维
+ （3）不带继承的多态*
+ （4）定义一个抽象基类：找出所有子类共通的操作行为->哪些操作与型相依(是否为virtual)->每个操作行为的存取层次(是public还是private还是protected)
+ （5）定义一个派生类*
+ （6）使用继承体系：将所有派生类共有的实现内容抽离出来，移至基类内
+ （7）基类抽象：从子类中抽象出基类
+ （8）初始化、析构、复制 子类数据成员=基类data member+本身data member
+ （9）在派生类中定义一个虚函数 继承 虚拟函数的静态决议->派生时完全吻合
+ （10）执行期型别鉴定机制*
+
+六、以template进行编程
+ 1、被参数化的型别
+ 2、class template的定义
+ 3、template型别参数(type parameters)的处理
+ 4、实现一个class template
+ 5、一个以function template完成的output运算符
+ 6、常量表达式（constant expressions）默认参数（Default Parameters）
+ 7、Template参数
+ 8、member template funtions
+
+七、异常处理*
