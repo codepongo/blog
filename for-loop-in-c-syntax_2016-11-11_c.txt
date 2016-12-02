@@ -1,0 +1,10 @@
+<h1>C语言中for循环的语法</h1>
+
+<pre>
+for (before-all; condition; after-each) {
+}
+</pre>
+
+<p><img src="/for-loop-in-c-syntax.gif" alt="for loop" /></p>
+
+#html
