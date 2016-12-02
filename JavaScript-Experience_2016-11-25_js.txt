@@ -1,0 +1,105 @@
+<h1>JavaScript一些经验</h1>
+
+
+
+
+转自：http://onlyaa.com/html/javascript/index.htm
+/*javascript 使用正则表达式替换*/
+	var str = 'hfggds';
+	str = str.replace(/^\s+/gi, '');
+	str = str.replace(/\s+$/gi, '');
+/*string <=> integer*/
+/*整型与字符型相互转换*/
+	var s = 1;
+	s = s + "";
+	s = new String (2345);
+	n = 1*s;
+
+/*枚举*/
+Enumator
+{
+	a = 0,
+	b = 1,
+	c,
+};
+/*定义一个对象*/
+/*define a object*/
+	var obj = {
+		a: 1,
+		b: 2,
+		c: function(g){alert(g)},
+		d: 4
+	}
+	alert(obj['a']);
+	obj.c("obj.c");
+	obj.c = function(){
+	alert(this.b);
+	};
+	obj.c();
+
+	var obj = new Object();
+	obj.a = 1;
+	obj.b = 2;
+	obj.c = function(){};
+/*数组的定义*/
+/*define array*/
+	var array = new Array();
+	var array = [[1,2],[3,4]];
+
+
+/*模块之间值的传递*/
+	1.通过global全局变量传递
+	2.通过return返回
+		a.返回变量 return var;
+		b.返回一个对象 return {};
+	3.通过类的属性传递
+
+/*取得variant类型*/
+	typeof variant
+/*类的方法*/
+	/*类的构造函数*/
+	// this only constructor for creating other class
+	var __CLASS = {
+		create: function() {
+			return function() {
+				this._initialize.apply(this, arguments);	
+			};
+		}
+	};
+	//创建类
+	var chartData = __CLASS.create();
+	//定义类
+	chartData.prototype={
+		m_a : 0,
+		m_p : null,
+		_initialize : function(a, p){
+			this.m_a = a;
+			this.m_p = p;
+			this.data = [];
+		},
+		fa : function(){
+			var _this = this;
+			alert(_this.m_a); 
+		}
+	}
+	//使用类
+	var aa = new chartData;
+	//默认构造
+	aa._initialize("aa", null);
+	//调用方法
+	aa.fa();
+/*show window status*/
+	function showms() {
+		var str = '(x='+event.x+', y=' + event.y + ')';
+		window.status = str;
+	}
+	
+/* 自动设置大小 */
+	<script language="javascript">
+		attachEvent('onresize', function(){
+			alert(screen.availWidth);	
+		});
+	</script>
+
+===
+vim:filetype=changelog
