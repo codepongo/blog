@@ -1,0 +1,80 @@
+<h1>zanders3json</h1>
+
+<p><a href="https://github.com/zanders3/json">https://github.com/zanders3/json</a>是一个C#实现的json库，只有几百行代码，为了简便牺牲了效率（No JIT Emit support to parse structures quickly）。</p>
+
+<h2>接口</h2>
+
+<ul>
+<li>将json字符串解析成c#中的T类型</li>
+</ul>
+
+<pre data-language="C#">
+T TinyJson.JSONParser.FromJson< T >(this string json)
+</pre>
+
+<ul>
+<li>将C#的object导出成json格式的字符串</li>
+</ul>
+
+<pre data-language="C#">
+string TinyJson.JSONWriter.ToJson(this object item)
+</pre>
+
+<h2>json结构与C#的对应关系</h2>
+
+<ul>
+<li><p>object应设为c#中的dictionary<code>&lt;string,object&gt;</code>或object；</p></li>
+<li><p>array映射为ArrayList；number映射为int，float或double；</p></li>
+<li><p>string还是string；boolean还是boolean。</p></li>
+</ul>
+
+<h2>实现思路</h2>
+
+<p>如果是基本数据类型则直接返回，如果是容器类型则以递归的方式根据不同类型调用不同方法进行解析和序列化。</p>
+
+<h2>示例</h2>
+
+<pre data-language="C#">
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using TinyJson;
+namespace TinyJsonTester
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            object json = new Dictionary< string, object >
+            {
+                {"string", "" },
+                {"number", new Dictionary< string, object > {
+                                {"int",0 },
+                                {"float", 0.1f },
+                                {"double", 0.0001 }
+                            }
+                },
+                {"array", new ArrayList {
+                                    0,
+                                    "0",
+                                    null,
+                                    true
+                                }
+                }
+            };
+            string jsonText = JSONWriter.ToJson(json);
+            Console.WriteLine(jsonText);
+            Dictionary< string, object > root = JSONParser.FromJson< Dictionary< string, object > > (jsonText);
+            string stringValue = (string)root["string"];
+            //Dictionary< string, object > number = (Dictionary< string, object >)root["number"];
+            float f = (float)(double)((Dictionary< string, object >)root["number"])["float"];
+            //List< object > array = (List< object >)root["array"];
+            int zero = (int)(((List< object >)root["array"])[0]);
+            Console.WriteLine($"{root}, {stringValue}, {f} , {zero}");
+        }
+    }
+}
+</pre>
+
+#html
