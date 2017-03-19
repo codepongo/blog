@@ -1,0 +1,178 @@
+<h1>PDF文件生成</h1>
+
+<h2>分析PDF格式</h2>
+
+<pre>
+>python pdf-parser.py -w -f x.pdf > x.pdf.dump.txt
+</pre>
+
+<p>输出PDF文件源码并还原经过处理的stream对象。</p>
+
+<ul>
+<li>PDF文件以obj为一个单位</li>
+<li><code>&lt;&lt; &gt;&gt;</code>包含obj的一些属性，如Filter格式</li>
+<li>[2 0 R]表示引用obj 2 0 对象</li>
+<li>/Type为Catalog, Pages, Page的页不可或缺</li>
+<li>/Type为Page的obj，/MediaBox表示纸张大小</li>
+</ul>
+
+<h2>PDF显示中文</h2>
+
+<p>有两种方式显示中文，/Type为Font的obj的/Encoding属性为/Identity-H，
+然后/Contents所引用的obj中文字用glyph（文字在字体文件中的编码）表示。
+采用这种方式如果不把完整的字体文件或者经过裁剪的字体文件嵌入PDF文件中，
+会导致PDF文件兼容性很差，如对应系统中没有安装PDF指定的字体，则PDF将不能
+正常显示。 GetGlyphIndices即可得到glyph index。
+<strong>另一种方式是/Encoding使用/WinAnsiEncoding，中文直接采用unicode编码表示。</strong></p>
+
+<h2>PDF 单位</h2>
+
+<p>PDF中固定每个单位为1磅即1/72英寸，1英寸为2.54厘米。
+所以要在PDF上画1毫米即为72/2.54/10=2.834个单位</p>
+
+<h2>示例</h2>
+
+<pre>
+%PDF-1.4
+
+1 0 obj
+<< 
+/Type /Catalog 
+/Pages 2 0 R 
+>> 
+endobj
+2 0 obj
+<< 
+/Type /Pages 
+/Count 1 
+/Kids [ 3 0 R ] 
+>> 
+endobj
+3 0 obj
+<< 
+/MediaBox [ 0 0 842 595 ] 
+/Resources << /Font << /F2 6 0 R /F1 7 0 R >> /ProcSet 8 0 R >> 
+/Type /Page 
+/Parent 2 0 R 
+/Contents 9 0 R 
+>> 
+endobj
+4 0 obj
+<< 
+/Type /FontDescriptor 
+/FontBBox [ 0 0 0 0 ] 
+>> 
+endobj
+5 0 obj
+<< 
+/BaseFont /SimSun 
+/Subtype /CIDFontType2 
+/FontDescriptor 4 0 R 
+/Type /Font 
+/CIDSystemInfo << 
+/Registry (Adobe)
+/Ordering (GB1)
+>> 
+>> 
+endobj
+6 0 obj
+<< 
+/BaseFont /Helvetica 
+/Name /F2 
+/Type /Font 
+/Encoding /WinAnsiEncoding 
+/Subtype /TrueType 
+>> 
+endobj
+7 0 obj
+<< 
+/FontDescriptor 4 0 R 
+/Name /F1 
+/DescendantFonts [ 5 0 R ] 
+/Subtype /Type0 
+/Encoding /UniGB-UCS2-H 
+/Type /Font 
+/BaseFont /SimSun 
+>> 
+endobj
+8 0 obj
+[ 
+/PDF /Text 
+]
+endobj
+9 0 obj
+<< /Length 246 >> 
+stream
+1 0 0 1 0 0  cm
+1  w
+0.2745098 0.509804 0.7058824 rg
+0 0 0 RG
+56.68 538.32 28.34 28.34  re
+ B
+
+
+BT
+
+/F1 8 Tf
+0 0 1 rg
+0 0 1 RG
+0 0 m 28.34 580.83 TD 0 0 0 rg
+0 0 0 RG
+
+/F1 9 Tf
+<7ED852364E004E2A59275C0F8FB9957F003153987C7376846B6365B95F62>Tj
+
+ET
+
+endstream
+endobj
+10 0 obj
+<< 
+/ModDate (D:20020306011115+06'00')
+/CreationDate (D:20020306011115+06'00')
+>> 
+endobj
+xref
+0 11 
+0000000000 65535 f
+0000000010 00000 n
+0000000063 00000 n
+0000000127 00000 n
+0000000287 00000 n
+0000000356 00000 n
+0000000515 00000 n
+0000000632 00000 n
+0000000791 00000 n
+0000000823 00000 n
+0000001121 00000 n
+trailer
+<< 
+/Root 1 0 R 
+/Size 11
+/Info 10 0 R 
+>> 
+startxref
+1220
+%%EOF
+
+</pre>
+
+<h2>源代码</h2>
+
+<p>C#基于PDFLib实现的一个PDF导出源码。
+* 浮点数描述坐标，定位更准。
+* 支持中文</p>
+
+<p><a href="https://github.com/codepongo/pdfexporter">https://github.com/codepongo/pdfexporter</a></p>
+
+<h2>参考</h2>
+
+<ul>
+<li><a href="https://sourceforge.net/projects/pdflibrary/">PDF.NET - 生成PDF的C#类库</a></li>
+<li><a href="https://blog.didierstevens.com/programs/pdf-tools/">PDFTools - Python开发的PDF文件的工具集</a></li>
+<li><a href="https://www.codeproject.com/Articles/570682/PDF-File-Writer-Csharp-Class-Library-Version">PDF File Writer C# Class Library</a></li>
+<li><a href="https://msdn.microsoft.com/en-us/library/windows/desktop/dd144890.aspx">GetGlyphIndices function</a></li>
+<li><a href="http://stackoverflow.com/questions/14586315/how-to-get-the-userunit-property-from-a-pdffile-using-itextsharp-pdfreader">PDF, the default for the size of the unit</a></li>
+</ul>
+
+#html
