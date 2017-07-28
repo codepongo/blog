@@ -1,0 +1,62 @@
+<h1>部署mysql</h1>
+
+<h2>版本</h2>
+
+<pre>
+>bin\mysqld.exe --version
+bin\mysqld.exe  Ver 5.7.18 for Win32 on AMD64 (MySQL Community Server (GPL))
+</pre>
+
+<h2>配置</h2>
+
+<pre>
+[mysqld]
+basedir = "d:\\mysql"
+datadir = "d:\\mysql\\data"
+</pre>
+
+<h2>初始化</h2>
+
+<pre>
+>bin\mysqld.exe --console --initialize-insecure
+</pre>
+
+<h2>启动</h2>
+
+<pre>
+>bin\mysqld.exe --console
+</pre>
+
+<h2>登录</h2>
+
+<pre>
+>bin\mysql -u root --skip-password
+</pre>
+
+<h2>修改root密码</h2>
+
+<pre>
+>alter user 'root'@'localhost' identified by 'password';
+</pre>
+
+<h2>建立用户</h2>
+
+<pre>
+>bin\mysql -u root -p
+>create user 'username'@'%' indentified by 'password'
+</pre>
+
+<h2>创建数据库</h2>
+
+<pre>
+create database db;
+</pre>
+
+<h2>提权</h2>
+
+<pre>
+grant all privileges on db.* to username;
+flush privileges;
+</pre>
+
+#html
