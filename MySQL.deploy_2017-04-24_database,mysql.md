@@ -77,3 +77,11 @@ create database db;
 grant all privileges on db.* to username;
 flush privileges;
 </pre>
+
+
+## 允许root远程 ##
+
+
+<pre>
+grant all privileges on *.* to 'root'@'%' identified by 'password';
+</pre>

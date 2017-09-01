@@ -59,4 +59,10 @@ grant all privileges on db.* to username;
 flush privileges;
 </pre>
 
+<h2>允许root远程</h2>
+
+
+<pre>
+grant all privileges on *.* to 'root'@'%' identified by 'password';
+</pre>
 #html
