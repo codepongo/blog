@@ -1,0 +1,40 @@
+digraph G {
+    rankdir="LR";
+    node[shape="point", width=0, height=0];
+    edge[arrowhead="none", style="dashed"]
+
+    {
+        rank="same";
+        edge[style="solid"];
+        ca00[shape="plaintext" label="Client Subscriber"];
+        ca00 -> ca01 -> ca02 -> ca03 -> ca04 -> ca05 -> ca06 -> ca07 -> ca08 -> ca09 -> ca10 -> ca11;
+    }
+
+    {
+        rank="same";
+        edge[style="solid"];
+        ss00[shape="plaintext" label="Server"];
+        ss00 -> ss01 -> ss02 -> ss03 -> ss04 -> ss05 -> ss06 -> ss07 -> ss08 -> ss09 -> ss10 -> ss11;
+    }
+
+    {
+        rank="same";
+        edge[style="solid"];
+        cb00[shape="plaintext" label="Client Publisher"];
+        cb00 -> cb01 -> cb02 -> cb03 -> cb04 -> cb05 -> cb06 -> cb07 -> cb08 -> cb09 -> cb10 -> cb11;
+    }
+
+    ca00 -> ss00 -> cb00 [color=white]
+    ca01 -> ss01 [label="request for subscription", arrowhead="normal"];
+    cb02 -> ss02 [label="publish msg(a)" arrowhead="normal"];
+    ss03 -> ca03 [label="response with msg(a)" arrowhead="normal"];
+    cb04 -> ss04 [label="publish msg(b)" arrowhead="normal"];
+    ss05 [shape="box" label="cache"];
+    ca06 -> ss06 [label="request for subscription", arrowhead="normal"];
+    ss07 -> ca07 [label="response with msg(b) from cache", arrowhead="normal"];
+    ca08 -> ss08 [label="request for subscription", arrowhead="normal"];
+    ss09 -> ca09 [label="response for timeout" arrowhead="normal"];
+    ca10 -> ss10 [label="request for subscription", arrowhead="normal"];
+    ca11 -> ss11 -> cb11 [color=white]
+
+}
