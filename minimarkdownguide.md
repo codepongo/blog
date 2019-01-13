@@ -1,159 +1,179 @@
 Markdown Syntax Guide
 ======================
-# Title #
 
-	This is an Main Title
-	=====================
-	This is an Sub Title
-	----------------------
-# Section #
+# Headers
+## Setext
 
-* # This is an H1 #
-* ## This is an H2 ##
-* ### This is an H3 ##
-* #### This is an H4 ####
-* ##### This is an H5 #####
-* ###### This is an H6 ######
+    This is an Main Title
+    =====================
+    This is an Sub Title
+    ----------------------
 
-# List #
-	
-	* 1
-    
-		+ 1-1
+## Atx-style headers
 
-            - 1-1-1
+* This is an H1
+* This is an H2
+* This is an H3
+* This is an H3
+* This is an H4
+* This is an H5
+* This is an H6
 
-            - 1-1-2
+# Lists
 
-		+ 1-2
-	* 2
+    * 壹
+      + 壹 - 壹
+        - 壹 - 壹 - 壹
+        - 壹 - 壹 - 貳
+      + 壹 - 貳
+    * 貳
+    * 叁
+      1. 叁 - 壹
+      2. 叁 - 貳
+as:  
 
-	* 3
-
-		1. 3-1
-
-		2. 3-2
-	
-as:
-
-	
-* 1
-	+ 1-1
-		- 1-1-1
-		- 1-1-2
-	+ 1-2
-* 2
-* 3
-	1. 3-1
-	2. 3-2
-	
-
-# important #
-
-* *\*em\**
-*  **\*\*strong\*\***
-
-# link #
-
-* [This][1] is a reference-style link.
-
-	
-	\[This][1] is a reference-style link.
-
-	[1]: http://codepongo.com/ "codepongo"
+* 壹
+    + 壹 - 壹
+        - 壹 - 壹 - 壹
+        - 壹 - 壹 - 貳
+    + 壹 - 貳
+* 貳
+* 叁
+    1. 叁 - 壹
+    2. 叁 - 貳
 
 
-* [This](http://www.baidu.com) is a link.
+# Emphasis
+* _\_em\__
+* **\*\*strong\*\***
 
-	\[This](http://codepongo.com) is a link.
-	
-# image #
+# link
+## automatic link
+
+    <http://codepongo.com>
+as:  
+<http://codepongo.com>
+
+## inline link
+
+    [This](http://codepongo.com) is a link.
+as:  
+ [This](http://www.baidu.com) is a link.
+
+## reference link
+    [This][1] is a reference-style link.
+    [1]: http://codepongo.com/ "codepongo"
+as:  
+[This][1] is a reference-style link.  
+[1]: http://codepongo.com/ "codepongo"
+
+
+# image
 
 \!\[alt=markdown.jpg\](markdown.jpg)
+as:   
  ![alt=markdown.jpg](markdown.jpg)
 
-# paragraph #
+# paragraph
+
+    $(linesep)
+    this is in the first paragraph.
+    $(linesep)
+    this is in the second paragraph.$(blank)$(blank)
+    this is in the third paragraph.
+    this is in the third paragraph also.
+    $(linesep)
+    $(linesep)
+    ...
+as:  
+this is in the first paragraph.
+
+this is in the second paragraph.  
+this is in the third paragraph.
+this is in the third paragraph also.
 
 
-	$(linesep)
-	this is one pargraph
-	$(linesep)
-	$(linesep)
-	this is two pargraph
-	$(linesep)
-	$(linesep)
-	...
-	$(linesep)
+...
 
-
-
-this is one pargraph
-
-
-this is two pargraph
-
-
-# sample #
+# sample
 
 ------------------------------------------------------------------------------
 
-Mini Markdown Syntax Sample
+Title
 ===========================
 
-a Mini Markdown for Writing document myself
+Sub Title
 -------------------------------------------
 
-# Section One #
+# Section One
 
 This is a Section Contents.
+The second sentence is in the first paragraph.
 
-# Section Two #
+The third line is in the second paragraph of the section one.  
+I use the line break in the fourth sentence.
 
-There is a list in this section.
+
+# Section Two
+
+There is two lists in this section.
+
+The below is unordered list:  
+
 * 1
-	+ 1-1
-		- 1-1-1
-		- 1-1-2
-	+ 1-2
+  + 1-1
+    - 1-1-1
+    - 1-1-2
+  + 1-2
 * 2
 * 3
-	+ 3-1
-	+ 3-2
+  + 3-1
+ + 3-2
 
-# Section Three #
+The ordered list is below:  
 
-there is a long long long long long long long long long long long long
+1. First
+   1. First-One
+   2. First-Two
+2. Second
+   1. Second-One
+   2. Second-Two
+more detail about Second-Two
+there are some pagraph in Second-Two  
+this is the second sentence, but there is only one pagraph in it.
+3. Third
 
+
+# Section Three
+
+there is a long long long long long long long long long long long long  
 long long sentence in this section.
 
-# Section Four #
+there is a line break before the last two long
+
+# Section Four
 
 * [This][1] is a reference-style link.
-
 * [This](http://codepongo.com) is a link.
-
-# Section Five #
-
-
-there are two pargraphs in this section
+* <http://codepongo.com>
 
 
+# Section Five
+
+there are two pargraphs in this section.  
 this is one pargraph
 
+this is the other pargraph
 
-this is two pargraph
 
-
-# Section Six #
-An image is shown in this section.
-
+# Section Six
+An image is in this section.  
 ![alt=markdown.jpg](markdown.jpg)
 
 
-[Markdown zh_tw](markdown.tw)
-
-[python markdown2](https://github.com/trentm/python-markdown2)
-
-[Markdown syntax English](http://daringfireball.net/projects/markdown/syntax)
-
-[1]: http://codepongo.com/ "codepongo"
+# Bibliography
+<http://markdown.tw>  
+<https://github.com/trentm/python-markdown2>  
+<http://daringfireball.net/projects/markdown/syntax>  
+<https://github.github.com/gfm/>
+<https://spec.commonmark.org/>
