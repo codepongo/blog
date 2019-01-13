@@ -737,8 +737,8 @@ def renderHtmlHeader(title=None, links=[]):
     else:
         print "<title>%s - %s </title>" % (blogname, slogan)
     print "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=%s\" />" % encoding
-    print "<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" />" % stylesheet
     print '<link rel="stylesheet" href="/rainbow/themes/monokai.css">'
+    print "<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" />" % stylesheet
     print "<link rel=\"shortcut icon\" href=\"%s\"/>" % favicon
     print "<link rel=\"alternate\" type=\"application/rss+xml\" title=\"%s RSS Feed\" href=\"%s/feed/\" />" % (blogname, baseurl)
 
@@ -1226,7 +1226,7 @@ def renderHtml(entries, path, catelist, arclist, admin, page):
     print "<div id=\"content2\">"
     for entry in entries:
         print "<div class=\"post\">"
-        print "<a href=\"%s\">%s</a>" % (
+        print '<div class="title"><a href="%s">%s</a></div>' % (
             entry.url,
             entry.headline)
         for line in entry.getText(summary):
