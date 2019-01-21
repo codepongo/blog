@@ -1,0 +1,146 @@
+<h1>Debug python Script with pdb</h1>
+
+<h2>Usage</h2>
+
+<h3>Launch</h3>
+
+<p>to debug a script, you can run</p>
+
+<blockquote>
+  <p>python -m <code>script_to_debug.py</code> arguments</p>
+</blockquote>
+
+<p>The program will break in the first line of the script.
+pdb will automatically enter post-mortem debug and restart</p>
+
+<h3>Insert Statment to Break the Running Script</h3>
+
+<blockquote>
+  <p>import pdb;pdb.set_trace()</p>
+</blockquote>
+
+<p>if you want to suspend on exception in pdb, try post_mortem method</p>
+
+<blockquote>
+  <p>import pdb;pdb.post_mortem()</p>
+</blockquote>
+
+<h3>Configure</h3>
+
+<p><strong>.pdbrc</strong> locates home folder or current folder <br />
+aliases is in this file</p>
+
+<p>to include py script into my.pdbrc, use execfile() to run a file containing your Python code.</p>
+
+<h4>.pdbrc</h4>
+
+<pre>
+<code data-language="python">
+#Print a dictionary, sorted. %1 is the dict, %2 is the prefix for the names.
+alias p_ for k in sorted(%1.keys()): print "%s%-15s= %-80.80s" % ("%2",k,repr(%1[k]))
+
+#Print the member variables of a thing.
+alias pi p_ %1.__dict__ %1.
+
+#Print the member variables of self.
+alias ps pi self
+
+#Print the locals.
+alias pl p_ locals() local:
+
+#Next and list, and step and list.
+alias nl n;;l
+alias sl s;;l
+
+execfile(".pdbrc.py")
+</code>
+</pre>
+
+<h4>pdbrc.py</h4>
+
+<p>in the same directory as the .pdbrc</p>
+
+<pre>
+<code data-language="python">
+print ".pdbrc.py"
+</code>
+</pre>
+
+<h2>Command</h2>
+
+<p>Arguments to commands must be separated by whitespace <br />
+multiple commands may be entered on a single, sparated by <strong>;;</strong></p>
+
+<h3>Help</h3>
+
+<ul>
+<li>h(elp) [command]</li>
+</ul>
+
+<h3>Stack Frames</h3>
+
+<ul>
+<li>w(here)</li>
+<li>d(own)</li>
+<li>u(p)</li>
+</ul>
+
+<h3>Breakpoints</h3>
+
+<ul>
+<li>b(reak) [filename:]:lineno | function[, condition]] <br />
+without argument, list all breaks</li>
+<li>tbreak [filename:]:lineno | function[, condition]] </li>
+<li>cl(ear)  [filename:]:lineno | function[, condition]] </li>
+<li>disable [bpnumber [bpnumber ...]]</li>
+<li>enable [bpnumber [bpnumber ...]]</li>
+<li>ignore bpnumber [count]</li>
+<li>condition bpnumber [condition]</li>
+<li>commands [bpnumber]</li>
+</ul>
+
+<h3>Evaluation</h3>
+
+<ul>
+<li>s(tep)</li>
+<li>n(ext)</li>
+<li>unt(il)</li>
+<li>r(eturn)</li>
+<li>c(ont(inue))</li>
+<li>j(ump) lineno</li>
+</ul>
+
+<h3>View</h3>
+
+<ul>
+<li>l(ist) [first[, last]]</li>
+<li>a(rgs)</li>
+<li>p expression</li>
+</ul>
+
+<h3>Macro</h3>
+
+<ul>
+<li>alias [name [command]]</li>
+<li>unalias name</li>
+</ul>
+
+<h2>PDB Source Code</h2>
+
+<p>Three main classes in this module, the pdb uses the modules bdb and cmd.</p>
+
+<ul>
+<li>cdb.py</li>
+<li>cmd.py</li>
+<li>pdb.py</li>
+</ul>
+
+<h2>Bibliography</h2>
+
+<p><a href="https://nedbatchelder.com/blog/200704/my_pdbrc.html">https://nedbatchelder.com/blog/200704/my_pdbrc.html</a> <br />
+<a href="https://wiki.python.org/moin/PdbRcIdea">https://wiki.python.org/moin/PdbRcIdea</a> <br />
+<a href="https://stackoverflow.com/questions/44155444/how-to-write-a-working-pdbrc-file">https://stackoverflow.com/questions/44155444/how-to-write-a-working-pdbrc-file</a> <br />
+<a href="https://docs.python.org/2/library/pdb.html">https://docs.python.org/2/library/pdb.html</a>
+<a href="https://stackoverflow.com/questions/45446944/suspend-on-exception-in-pdb">https://stackoverflow.com/questions/45446944/suspend-on-exception-in-pdb</a></p>
+
+#html
