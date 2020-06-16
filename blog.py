@@ -21,7 +21,15 @@ License along with Kukkaisvoima.  If not, see
 
 """
 
-import cgi
+service = 'cgi'
+service = 'webpy'
+
+if service == 'webpy':
+    import web
+elif service == 'cgi':
+    import cgi
+else:
+    raise 'Service is unknown'
 import pickle
 import os
 from urllib import quote_plus, unquote_plus
@@ -48,8 +56,8 @@ except ImportError: # older python (older than 2.5) does not hashlib
     import md5
     md5fun = md5.new
 from bmp24 import *
-
 from blog_settings import *
+
 
 # Language variables
 l_archives = '日志'
@@ -107,6 +115,15 @@ version = '15b3TA'
 dates = {} #dates[datetime] = filename
 datenow = datetime.now()
 datenow_date = datenow.date()
+
+if service == 'webpy':
+    class FieldStorageWrap():
+        def __init__(self, data):
+            self.input = data
+        def getvalue(self, key):
+            if self.input.has_key(key):
+                return self.input[key]
+            return None
 
 def mkCaptcha():
     letters_idx = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -529,11 +546,18 @@ def handleIncomingComment(fs):
         return None
     captchadb = anydbm.open(os.path.join(indexdir,'captcha.db'), 'c')
     if ''.join(captchadb[timestamp]) != captcha:
-        captchadb.pop(timestamp)
+        if hasattr(captchadb, 'pop'):
+            captchadb.pop(timestamp)
+        else:
+            del captchadb[timestamp]
         captchadb.close()
         return None
-    captchadb.pop(timestamp)
-    captchadb.sync()
+    if hasattr(captchadb, 'pop'):
+        captchadb.pop(timestamp)
+    else:
+        del captchadb[timstamp]
+    if hasattr(captchadb, 'sync'):
+        captchadb.sync()
     captchadb.close()
 
     # remove html tags
@@ -588,7 +612,12 @@ def handleIncomingComment(fs):
             pass # TODO log errors, for now just fail silently
 
     # redirect
-    return 'Location: %s/%s#comment-%s\n' % (baseurl, name, commentnum)
+    if service == 'cgi':
+        return 'Location: %s/%s#comment-%s\n' % (baseurl, name, commentnum)
+    elif service == 'webpy':
+        return '%s/%s#comment-%s' % (baseurl, name, commentnum)
+    else:
+        raise 'Service is unknown'
 
 class Entry:
     firstpre = re.compile("<p.*?(</p>|<p>)", re.DOTALL | re.IGNORECASE)
@@ -707,47 +736,57 @@ class Entries:
             ents.append(Entry(indexindex[key], datadir))
         return ents
 
+
+# render page
 def renderCaptcha(data):
-    print 'Content-Type: image/bmp\n'
-    print data
+    if service == 'cgi':
+        print 'Content-Type: image/bmp\n'
+        print data
+    elif service == 'webpy':
+        web.header('Content-Type', 'image/bmp')
+        return data
+    else:
+        raise 'Service is unknown'
 
 def renderHtmlFooter():
-    print "<div id=\"footer\">"
-    print 'Powered by <a href="https://github.com/codepongo/blog" target="_blank">Codepongo</a> (Base on <a href="http://23.fi/kukkaisvoima">Kukkaisvoima</a> version %s)' % version
-    print "<br />"
-    print "Hosting by <a href=\"http://bu3w.net\">Mencius</a>"
-    print "<br />"
-    print "Proudly <b>NOT</b> powered by WordPress or Jekyll"
-    print "</div>"
-    print "</div>" # content1
-    print '<script src="/rainbow/js/rainbow.js"></script>'
-    print '<script src="/rainbow/js/language/generic.js"></script>'
-    print '<script src="/rainbow/js/language/c.js"></script>'
-    print '<script src="/rainbow/js/language/python.js"></script>'
-    print "</body>"
-    print "</html>"
+    html = ''
+    html += "<div id=\"footer\">\n"
+    html += 'Powered by <a href="https://github.com/codepongo/blog" target="_blank">Codepongo</a> (Base on <a href="http://23.fi/kukkaisvoima">Kukkaisvoima</a> version %s)' % version
+    html += "<br />\n"
+    html += "Hosting by <a href=\"http://bu3w.net\">Mencius</a>\n"
+    html += "<br />\n"
+    html += "Proudly <b>NOT</b> powered by WordPress or Jekyll\n"
+    html += "</div>\n"
+    html += "</div>" # content1
+    html += '<script src="/rainbow/js/rainbow.js"></script>\n'
+    html += '<script src="/rainbow/js/language/generic.js"></script>\n'
+    html += '<script src="/rainbow/js/language/c.js"></script>\n'
+    html += '<script src="/rainbow/js/language/python.js"></script>\n'
+    html += "</body>\n"
+    html += "</html>\n"
+    return html
 
 def renderHtmlHeader(title=None, links=[]):
-    print  "Content-Type: text/html; charset=%s\n" % encoding
-    print doctype
-    print "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"%(lang)s\" lang=\"%(lang)s\">" % {'lang':language}
-    print "<head>"
+    html = ''
+    html += "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"%(lang)s\" lang=\"%(lang)s\">\n" % {'lang':language}
+    html += "<head>\n"
     if title:
-        print "<title>%s | %s - %s</title>" % (title, blogname, slogan)
+        #html += "<title>%s | %s - %s</title>\n" % (title.encode('utf-8'), blogname, slogan)
+        html += "<title>%s | %s - %s</title>\n" % (title, blogname, slogan)
     else:
-        print "<title>%s - %s </title>" % (blogname, slogan)
-    print "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=%s\" />" % encoding
-    print '<link rel="stylesheet" href="/rainbow/themes/monokai.css">'
-    print "<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" />" % stylesheet
-    print "<link rel=\"shortcut icon\" href=\"%s\"/>" % favicon
-    print "<link rel=\"alternate\" type=\"application/rss+xml\" title=\"%s RSS Feed\" href=\"%s/feed/\" />" % (blogname, baseurl)
+        html += "<title>%s - %s </title>\n" % (blogname, slogan)
+    html += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=%s\" />\n" % encoding
+    html += '<link rel="stylesheet" href="/rainbow/themes/monokai.css">\n'
+    html += "<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" />\n" % stylesheet
+    html += "<link rel=\"shortcut icon\" href=\"%s\"/>\n" % favicon
+    html += "<link rel=\"alternate\" type=\"application/rss+xml\" title=\"%s RSS Feed\" href=\"%s/feed/\" />\n" % (blogname, baseurl)
 
     # print additional links
     for i in links:
-        print i
+        html += i.encode('utf-8')
 
     # Javascript. Used to validate comment form, nice eh :P
-    print """
+    html += """
           <script type="text/javascript">
           /* <![CDATA[ */
 
@@ -844,48 +883,58 @@ def renderHtmlHeader(title=None, links=[]):
            l_name_must_be_filled_in,
            l_email_must_be_filled_in_and_must_be_valid,
            l_wrong_answer,
-           l_comment_cannot_be_empty)
-    print google_analytics_script
-    print "</head>"
-    print '<body>'
-    print "<div id=\"content1\">"
-    print "<div id=\"header\">"
-    print "<a href=\"%s\">%s</a>" % (baseurl, blogname)
-    print "<div id=\"slogan\">%s</div>" % slogan
-    print "</div>" #header
-    print '<div id="nav">'
-    print '<ul>'
-    print '<li>'
-    print '<a href="%s">%s</a>|' % (baseurl, l_home)
-    print '</li>'
-    print '<li>'
-    print '<a href="%s">%s</a>|' % ('http://app.codepongo.com', l_application)
-    print '</li>'
-    print '<li>'
-    print '<a href="%s">%s</a>|' % ('http://news.codepongo.com', l_news)
-    print '</li>'
-    print '<li>'
-    print '<a href="%s">%s</a>|' % ('http://cook.codepongo.com', l_cook)
-    print '</li>'
-    print '<li>'
-    print '<a href="%s">%s</a>|' % ('http://note.codepongo.com', l_note)
-    print '</li>'
-    print '<li>'
-    print '<a href="%s">%s</a>'  % ('http://me.codepongo.com', l_about_me)
-    print '</li>'
-    print '</ul>'
-    print "</div>" #menu
-    
+           l_comment_cannot_be_empty
+           ) + '\n'
+    html += google_analytics_script + '\n'
+    html += "</head>\n"
+    html += '<body>\n'
+    html += "<div id=\"content1\">\n"
+    html += "<div id=\"header\">\n"
+    html += "<a href=\"%s\">%s</a>\n" % (baseurl, blogname)
+    html += "<div id=\"slogan\">%s</div>\n" % slogan
+    html += "</div>\n" #header
+    html += '<div id="nav">\n'
+    html += '<ul>\n'
+    html += '<li>\n'
+    html += '<a href="%s">%s</a>|\n' % (baseurl, l_home)
+    html += '</li>\n'
+    html += '<li>\n'
+    html += '<a href="%s">%s</a>|\n' % ('http://app.codepongo.com', l_application)
+    html += '</li>\n'
+    html += '<li>\n'
+    html += '<a href="%s">%s</a>|\n' % ('http://news.codepongo.com', l_news)
+    html += '</li>\n'
+    html += '<li>\n'
+    html += '<a href="%s">%s</a>|\n' % ('http://cook.codepongo.com', l_cook)
+    html += '</li>\n'
+    html += '<li>\n'
+    html += '<a href="%s">%s</a>|\n' % ('http://note.codepongo.com', l_note)
+    html += '</li>\n'
+    html += '<li>\n'
+    html += '<a href="%s">%s</a>\n'  % ('http://me.codepongo.com', l_about_me)
+    html += '</li>\n'
+    html += '</ul>\n'
+    html += "</div>\n" #menu
+    if service == 'cgi':
+        print "Content-Type: text/html; charset=%s\n" % encoding
+        print doctype
+        print html
+    elif service == 'webpy':
+        web.header('Content-Type', 'text/html')
+        return html
+    else:
+        raise 'Service is unknown'
 
 def renderComment(entry, comment, numofcomment,
                   admin=False, pretext=False):
-    print "<li>"
+    html = ''
+    html += "<li>\n"
     if gravatarsupport:
-        print "<img style=\"padding-right:5px;\""
-        print "src=\"http://gravatar.com/avatar/%s?s=40&d=identicon\" align=\"left\"/>" % (
+        html += "<img style=\"padding-right:5px;\"\n"
+        html += "src=\"http://gravatar.com/avatar/%s?s=40&d=identicon\" align=\"left\"/>\n" % (
             comment.getEmailMd5Sum())
-    print "<cite>%s</cite>:" % comment.getAuthorLink()
-    print "<br />"
+    html += "<cite>%s</cite>:\n" % comment.getAuthorLink().encode('utf8')
+    html += "<br />\n"
     delcom = ""
     if admin:
         delcom = "<a href=\"%s/%s/?delcomment=%s\">(%s)</a>" % \
@@ -893,20 +942,21 @@ def renderComment(entry, comment, numofcomment,
              quote_plus(entry.fileName[:-4]),
              numofcomment,
              l_delete_comment)
-    print "<small><a name =\"comment-%s\" href=\"%s#comment-%s\">%s</a> %s </small>" % \
+    html += "<small><a name =\"comment-%s\" href=\"%s#comment-%s\">%s</a> %s </small>\n" % \
         (numofcomment,
          entry.url,
          numofcomment,
          dateToString(comment.date),
          delcom)
     if pretext:
-        print pretext
+        html += pretext.encode('utf8') + '\n'
     else:
-        print "<p>%s</p>" % comment.getText()
-    print "</li>"
-
+        html += "<p>%s</p>\n" % comment.getText().encode('utf8')
+    html += "</li>\n"
+    return html
 
 def renderEntryLinks(entries, text=None, comment_tuple_list=None):
+    html = ''
     # renders also some comments for search results
     for entry in entries:
         link = "<li><a href=\"%s\">%s</a>" % (
@@ -920,9 +970,9 @@ def renderEntryLinks(entries, text=None, comment_tuple_list=None):
         link += " (%s)" % entry.date
         if text:
             link += "<br /><pre>%s</pre>" % text
-        print link
+        html += link
         if comment_tuple_list:
-            print "<ol style=\"list-style-type:none;\">"
+            html += "<ol style=\"list-style-type:none;\">"
             numofcomment = 0
             for comment, ctext, author in comment_tuple_list:
                 numofcomment = numofcomment +1
@@ -937,14 +987,21 @@ def renderEntryLinks(entries, text=None, comment_tuple_list=None):
                     ctext = "<p>%s%s</p>" % (comm_text[:60], three_dots)
                 elif len(ctext) > 0:
                     ctext = "<pre>%s</pre>" % ctext
-                renderComment(entry, comment, numofcomment, False, ctext)
-            print "</ol>"
-        print "</li>"
+                html += renderComment(entry, comment, numofcomment, False, ctext)
+            html += "</ol>"
+        html += "</li>"
+    return html
 
 
 def renderCategories(catelist, ent, path):
-    renderHtmlHeader("archive")
-    print "<div id=\"content3\">"
+    html = ''
+    if service == 'cgi':
+        renderHtmlHeader('archive')
+    elif service == 'webpy':
+        html += renderHtmlHeader("archive") + '\n'
+    else:
+        raise 'Service is unknown'
+    html += "<div id=\"content3\">\n"
 
     if len(path) == 1 and path[0] == "categories":
         sortedcat = catelist.keys()
@@ -952,44 +1009,66 @@ def renderCategories(catelist, ent, path):
             sortedcat.sort(key=locale.strxfrm)
         except: # python < 2.4 fails
             sortedcat.sort()
-        print '<div class="subpage-title">%s</div>' % l_categories
-        print "<ul>"
+        html += '<div class="subpage-title">%s</div>\n' % l_categories
+        html += "<ul>\n"
 
         for cat in sortedcat:
-            print "<li><a href=\"%s/%s\">%s</a> (%s)</li>" % (
+            html += "<li><a href=\"%s/%s\">%s</a> (%s)</li>\n" % (
                 baseurl, quote_plus(cat), cat, len(catelist[cat]))
-            print "<ul>"
-            renderEntryLinks(ent.getMany(-1, cat))
-            print "</ul>"
+            html += "<ul>\n"
+            html += renderEntryLinks(ent.getMany(-1, cat))
+            html += "</ul>\n"
 
-        print "</ul>"
+        html += "</ul>\n"
     elif len(path) == 2 and path[1] in catelist.keys():
-            print '<div class="subpage-title">%s</div>' % path[1]
-            renderEntryLinks(ent.getMany(-1, path[1]))
+            html += '<div class="subpage-title">%s</div>\n' % path[1]
+            html += renderEntryLinks(ent.getMany(-1, path[1]))
 
-    print "</div>" # content3
-    renderHtmlFooter()
-    return
+    html += "</div>" # content3
+    html += renderHtmlFooter()
+    if service == 'cgi':
+        print html
+    elif service == 'webpy':
+        return html
+    else:
+        raise 'Service is unknown'
 
 
 def renderArchive(ent):
+    html = ''
     entries = ent.getMany(-1)
-    renderHtmlHeader(l_archives)
-    print "<div id=\"content3\">"
+    if service == 'cgi':
+        renderHtmlHeader(l_archives)
+    elif service == 'webpy':
+        html += renderHtmlHeader(l_archives)
+    else:
+        raise 'Service is unknown'
+    html += "<div id=\"content3\">"
 
-    print '<div class="subpage-title">%s (%d)</div>' % (l_archives, len(entries))
-    print "<ul>"
-    renderEntryLinks(entries)
-    print "</ul>"
+    html += '<div class="subpage-title">%s (%d)</div>' % (l_archives, len(entries))
+    html += "<ul>"
+    html += renderEntryLinks(entries)
+    html += "</ul>"
 
-    print "</div>" # content3
-    renderHtmlFooter()
-    return
+    html += "</div>" # content3
+    html += renderHtmlFooter()
+    if service == 'cgi':
+        print html
+    elif service == 'webpy':
+        return html
+    else:
+        raise 'Service is unknown'
 
 
 def renderSearch(entries, searchstring):
-    renderHtmlHeader(l_search)
-    print "<div id=\"content2\">"
+    html = ''
+    if service == 'cgi':
+        renderHtmlHeader(l_archives)
+    elif service == 'webpy':
+        html += renderHtmlHeader(l_search)
+    else:
+        raise 'Service is unknown'
+    html += "<div id=\"content2\">"
 
     # Remove some special character so that one don't exhaust the web
     # host with stupid .*? searches
@@ -1031,77 +1110,100 @@ def renderSearch(entries, searchstring):
         pline = ""
         for line in matchedfiles[entry]["lines"]:
             pline += line
-        renderEntryLinks([entry], pline, com_list)
+        html += renderEntryLinks([entry], pline, com_list)
 
     if len(matchedfiles) == 0: # no matches
-        print '<h1>' + l_search2 + '</h1>'
+        html += '<h1>' + l_search2 + '</h1>'
 
-    print "</div>" # content2
-    renderHtmlFooter()
-    return
+    html += "</div>" # content2
+    html += renderHtmlFooter()
+    if service == 'cgi':
+        print html
+    elif service == 'webpy':
+        return html
+    else:
+        raise 'Service is unknown'
+
 
 def renderDeleteComments(entry, commentnum):
-    renderHtmlHeader("comments")
-    print "<div id=\"content3\">"
+    html = ''
+    if service == 'cgi':
+        renderHtmlHeader("comments")
+    elif service == 'webpy':
+        html += renderHtmlHeader("comments")
+    else:
+        raise 'Service is unknown'
+    html += "<div id=\"content3\">\n"
     comments = entry.comments
 
     if len(comments) < commentnum:
-        print "<p>No comment</p>"
-        print "</body></html>"
-        return
+        html += "<p>No comment</p>\n"
+        html += "</body></html>\n"
+        if service == 'cgi':
+            print html
+        elif service == 'webpy':
+            return html
+        else:
+            raise 'Service is unknown'
     comment = comments[commentnum-1]
-    print "<ol>"
-    print "<li>"
-    print "<cite>%s</cite>:" % comment.getAuthorLink()
+    html += "<ol>\n"
+    html += "<li>\n,"
+    html += "<cite>%s</cite>:\n" % comment.getAuthorLink().encode('utf8')
 
-    print "<br />"
-    print "<small>%s</small>" % (dateToString(comment.date))
-    print "<p>%s</p>" % comment.getText()
-    print "</li>"
-    print "</ol>"
+    html += "<br />\n"
+    html += "<small>%s</small>\n" % (dateToString(comment.date))
+    html +="<p>%s</p>\n" % comment.getText().encode('utf8')
+    html += "</li>\n"
+    html += "</ol>\n"
 
-    print "<p>%s</p>" % l_do_you_delete
-    print "<form action=\"%s/%s/?deletecomment\" method=\"post\" id=\"deleteform\">" % (baseurl,
+    html += "<p>%s</p>\n" % l_do_you_delete
+    html += "<form action=\"%s/%s/?deletecomment\" method=\"post\" id=\"deleteform\">\n" % (baseurl,
                                                                                          quote_plus(entry.fileName[:-4]))
-    print "<input type=\"hidden\" name=\"commentnum\" id=\"commentnum\" value=\"%s\"/>" % (commentnum)
-    print "<input type=\"hidden\" name=\"name\" id=\"name\" value=\"%s\"/>" % entry.fileName[:-4]
-    print "<p><input type=\"password\" name=\"password\" id=\"password\" size=\"22\" tabindex=\"1\" />"
-    print "<label for=\"password\"><small>%s</small></label></p>" % l_passwd
-    print "<p><input name=\"submit\" type=\"submit\" id=\"submit\" tabindex=\"5\" value=\"%s\" />" % (l_submit)
-    print "</p></form>"
-    print "</div>" # content3
-    renderHtmlFooter()
-    return
+    html += "<input type=\"hidden\" name=\"commentnum\" id=\"commentnum\" value=\"%s\"/>\n" % (commentnum)
+    html += "<input type=\"hidden\" name=\"name\" id=\"name\" value=\"%s\"/>\n" % entry.fileName[:-4]
+    html += "<p><input type=\"password\" name=\"password\" id=\"password\" size=\"22\" tabindex=\"1\" />\n"
+    html += "<label for=\"password\"><small>%s</small></label></p>\n" % l_passwd
+    html += "<p><input name=\"submit\" type=\"submit\" id=\"submit\" tabindex=\"5\" value=\"%s\" />\n" % (l_submit)
+    html += "</p></form>\n"
+    html += "</div>\n" # content3
+    html += renderHtmlFooter()
+    return html
 
 def renderAdvert():
-    print '<div class="TitleLevel2">%s</div>' % l_advert
-    print "<br />"
-    print google_adsense_script
-    print "<br />"
+    html = ''
+    html += '<div class="TitleLevel2">%s</div>\n' % l_advert
+    html += "<br />\n"
+    html += google_adsense_script + '\n'
+    html += "<br />\n"
+    return html
 
 def renderSidebarDonate():
-    print '<div class="sidebar-title">%s</div>' % l_donate
-    print '<img width="128" height="128" src="/alipay.png" />'
-    print "<br />"
-    print """\
+    html = ''
+    html += '<div class="sidebar-title">%s</div>' % l_donate
+    html += '<img width="128" height="128" src="/alipay.png" />'
+    html += "<br />"
+    html += """\
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
 <input type="hidden" name="cmd" value="_s-xclick">
 <input type="hidden" name="hosted_button_id" value="WD22V8UQFPCZE">
 <input type="image" src="http://www.paypal.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
 <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
 </form>"""
+    return html
+
 def renderSidebarCategories(catelist, rss_categories):
+    html = ''
     categories = catelist.keys()
     try:
         categories.sort(key=locale.strxfrm)
     except: # python < 2.4 fails
         categories.sort()
-    print '<div class="sidebar-title"><a href="%s/categories">%s</a></div>' % (baseurl, l_categories)
+    html += '<div class="sidebar-title"><a href="%s/categories">%s</a></div>\n' % (baseurl, l_categories)
 
     hide_cat_str = ""
     topcategories = list()
     if len(categories) > numberofvisiblecategories:
-        print "<a href=\"#\" onclick=\"toggle_categories('tcategory'); return false;\">%s</a>" % (l_show_more_categories)
+        html += "<a href=\"#\" onclick=\"toggle_categories('tcategory'); return false;\">%s</a>\n" % (l_show_more_categories)
         topcategories = categories[:]
         topcategories.sort(key=lambda cat: len(catelist[cat]), reverse=True)
         topcategories = topcategories[:numberofvisiblecategories]
@@ -1110,52 +1212,58 @@ def renderSidebarCategories(catelist, rss_categories):
                 topcategories.append(cat)
         hide_cat_str = " class=\"tcategory\" style=\"display:none;\""
 
-    print "<ul>"
+    html += "<ul>\n"
     for cat in categories:
         add_str = ""
         if len(topcategories) > 0 and cat not in topcategories:
             add_str = hide_cat_str
-        print "<li%s><a href=\"%s/%s\">%s</a> (%s)" % (
+        html += "<li%s><a href=\"%s/%s\">%s</a> (%s)\n" % (
             add_str, baseurl, quote_plus(cat), cat, len(catelist[cat]))
         if cat in rss_categories:
-            print "<a href=\"%s/%s/feed\"><img alt=\"RSS Feed Icon\" src=\"%s\" style=\"vertical-align:top; border:none;\"/></a>" % \
+            html += "<a href=\"%s/%s/feed\"><img alt=\"RSS Feed Icon\" src=\"%s\" style=\"vertical-align:top; border:none;\"/></a>\n" % \
                 (baseurl, cat, feedicon)
-        print "</li>"
-    print "</ul>"
+        html += "</li>\n"
+    html += "</ul>\n"
+    return html
 
 def renderSidebarSearch():
-    print '<div class="sidebar-title">%s</div>' % l_search
-    print "<form action=\"%s\" method=\"get\" id=\"searchform\">" % baseurl
-    print "<input type=\"text\" name=\"search\" id=\"search\" size=\"15\" /><br />"
-    print "<input type=\"submit\" value=\"%s\" />" % l_search
-    print "</form>"
+    html = ''
+    html += '<div class="sidebar-title">%s</div>\n' % l_search
+    html += "<form action=\"%s/\" method=\"get\" id=\"searchform\">\n" % baseurl
+    html += "<input type=\"text\" name=\"search\" id=\"search\" size=\"15\" /><br />\n"
+    html += "<input type=\"submit\" value=\"%s\" />\n" % l_search
+    html += "</form>\n"
+    return html
 
 def renderSidebarCommments():
+    html = ''
     if sidebarcomments:
-        print '<div class="sidebar-title">%s</div>' % l_recent_comments
+        html += '<div class="sidebar-title">%s</div>\n' % l_recent_comments
         comlist = getCommentList()
         if len(comlist) == 0:
-            print l_no_comments_yet
+            html += l_no_comments_yet + '\n'
         else:
-            print "<ul>"
+            html += "<ul>\n"
             for com in comlist:
                 if shorturl:
                     entryurl = com["shorturl"]
                 else:
                     entryurl = quote_plus(com["file"][:-4])
-                print "<li>%s on <a href=\"%s/%s#comment-%d\">%s</a>"\
-                    % (com["author"], baseurl, entryurl,
-                       com["num"], com["subject"])
-                print "</li>"
-            print "</ul>"
+                html += "<li>%s on <a href=\"%s/%s#comment-%d\">%s</a>\n"\
+                    % (com["author"].encode('utf8'), baseurl, entryurl,
+                       com["num"], com["subject"].encode('utf8'))
+                html += "</li>\n"
+            html += "</ul>\n"
+    return html
 
 def renderSidebarArchive(arclist):
-    print '<div class="sidebar-title"><a href="%s/archive">%s</a> (%d)</div>' % \
+    html = ''
+    html += '<div class="sidebar-title"><a href="%s/archive">%s</a> (%d)</div>\n' % \
         (baseurl, l_archives,
          # total number of entries
          sum([len(l) for l in [i for i in arclist.itervalues()]]))
-    print l_toggle
-    print "<ul>"
+    html += l_toggle + '\n'
+    html += "<ul>"
     sortedarc = arclist.keys()
     sortedarc.sort()
     sortedarc.reverse()
@@ -1174,27 +1282,30 @@ def renderSidebarArchive(arclist):
     # display each year at top lovel and if visiability is toggled
     # then show months
     for year in years_keys:
-        print "<li><a href=\"#\" onclick=\"toggle_years('con-year-%s'); return false;\">%s</a> (%d)" %\
+        html += "<li><a href=\"#\" onclick=\"toggle_years('con-year-%s'); return false;\">%s</a> (%d)\n" %\
             (year, year,
              # number of entries per year
              sum([len(arclist[dat]) for dat in years[year]]))
 
-        print "<ul id=\"con-year-%s\" style=\"display:none;\">" % year
+        html += "<ul id=\"con-year-%s\" style=\"display:none;\">\n" % year
         for dat in years[year]:
-            print "<li><a href=\"%s/%s\">%s</a> (%s)</li>" % (
+            html += "<li><a href=\"%s/%s\">%s</a> (%s)</li>\n" % (
                 baseurl, dat, dat, len(arclist[dat]))
-        print "</ul></li>"
-    print "</ul>"
+        html += "</ul></li>\n"
+    html += "</ul>\n"
+    return html
 
 def renderSidebarAdmin(entries):
+    html = ''
     if len(entries) == 1:
-        print '<div class="sidebar-title">%s</div>' % l_admin
-        print "<ul>"
-        print "<li><a href=\"%s/%s/?admin\" rel=\"nofollow\">%s</a>" % \
+        html += '<div class="sidebar-title">%s</div>\n' % l_admin
+        html += "<ul>\n"
+        html += "<li><a href=\"%s/%s/?admin\" rel=\"nofollow\">%s</a>\n" % \
             (baseurl,
              quote_plus(entries[0].fileName[:-4]),
              l_admin_comments)
-        print "</ul>"
+        html += "</ul>\n"
+    return html
 
 def renderHtml(entries, path, catelist, arclist, admin, page):
     """Render the blog. Some template stuff might be nice :D"""
@@ -1222,200 +1333,185 @@ def renderHtml(entries, path, catelist, arclist, admin, page):
         rss.append("<link rel=\"alternate\" type=\"application/rss+xml\" title=\"%s: %s RSS Feed\" href=\"%s/%s/feed/\" />" % \
                        (blogname,cat,baseurl,quote_plus(cat)))
 
-    renderHtmlHeader(title, rss)
-    print "<div id=\"content2\">"
+    html = ''
+    if service == 'cgi':
+        renderHtmlHeader(title, rss)
+    elif service == 'webpy':
+        html += renderHtmlHeader(title, rss)
+    else:
+        raise 'Service is unknown'
+    html += "<div id=\"content2\">\n"
+
     for entry in entries:
-        print "<div class=\"post\">"
-        print '<div class="title"><a href="%s">%s</a></div>' % (
-            entry.url,
-            entry.headline)
+        html += "<div class=\"post\">\n"
+        html += '<div class="title"><a href="%s">%s</a></div>\n' % (
+                entry.url, #entry.url.encode('utf-8'),
+                entry.headline)#entry.headline.encode('utf-8'))
         for line in entry.getText(summary):
             if entry.filetype != 'html':
-                print line.replace('&', '&amp;').replace(' ', '&nbsp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace('\n', '<br />')
+                html += line.replace('&', '&amp;').replace(' ', '&nbsp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace('\n', '<br />') + '\n'
             else:
-                print line
+                html += line#.decode('utf-8') + '\n'
 
         if len(entries) > 1 and maxcomments > -1:
             nc = len(entry.comments)
             if nc > 0:
-                print "<div class=\"comlink\">%s <a href=\"%s#comments\">%s</a></div>" % (
+                html += "<div class=\"comlink\">%s <a href=\"%s#comments\">%s</a></div>\n" % (
                     nc,
                     entry.url,
                     l_comments2)
             else:
-                print "<div class=\"comlink\"><a href=\"%s#leave_acomment\">%s</a></div>" % (
+                html += "<div class=\"comlink\"><a href=\"%s#leave_acomment\">%s</a></div>\n" % (
                     entry.url,
+                    #l_no_comments.encode('utf-8'))
                     l_no_comments)
-        print "<div class=\"categories\">%s:" % l_categories
+        #html += "<div class=\"categories\">%s:\n" % l_categories.encode('utf-8')
+        html += "<div class=\"categories\">%s:\n" % l_categories
         num = 0
         for cat in entry.cat:
             num=num+1
             comma = ''
             if len(entry.cat) > num:
                 comma = ', '
-            print "<a href=\"%s/%s\">%s</a>%s" % (baseurl, quote_plus(cat), cat, comma)
-        print "</div>"
-        print "<div class=\"date\">%s: %s</div>" % \
+            html += "<a href=\"%s/%s\">%s</a>%s\n" % (baseurl, quote_plus(cat), cat, comma)
+        html += "</div>\n"
+        html += "<div class=\"date\">%s: %s</div>\n" % \
             (l_date, dateToString(entry.date))
 
-        print "</div>"
+        html += "</div>\n"
         # comments
         if len(entries) == 1:
             numofcomment = 0
             if len(entry.comments) > 0 and maxcomments > -1:
-                print '<div class="TitleLevel3"><a name="comments"></a>%s</div>' % l_comments
-                print "<ol style=\"list-style-type:none;\">"
+                html += '<div class="TitleLevel3"><a name="comments"></a>%s</div>\n' % l_comments
+                html += "<ol style=\"list-style-type:none;\">\n"
                 for comment in entry.comments:
                     numofcomment = numofcomment +1
-                    renderComment(entry, comment, numofcomment, admin)
-                print "</ol>"
+                    html += renderComment(entry, comment, numofcomment, admin)
+                html += "</ol>\n"
             if maxcomments == -1 or len(entry.comments) >= maxcomments:
-                print '<div class="TitleLevel3">%s</div>' % l_no_comments_allowed
+                html += '<div class="TitleLevel3">%s</div>\n' % l_no_comments_allowed
             else:
-                print '<div class="TitleLevel3"><a name="leave_acomment"></a>%s</div>' % l_leave_reply
-                print "<form action=\"%s/%s/?postcomment\" method=\"post\"" % (
+                html += '<div class="TitleLevel3"><a name="leave_acomment"></a>%s</div>\n' % l_leave_reply
+                html += "<form action=\"%s/%s/?postcomment\" method=\"post\"\n" % (
                     baseurl,
                     entry.fileName[:-4])
-                print "id=\"commentform\" onsubmit=\"return validate_form(this)\">" # form
-                print "<input type=\"hidden\" name=\"name\" id=\"name\" value=\"%s\"/>" % entry.fileName[:-4]
-                print "<input type=\"hidden\" name=\"headline\" id=\"headline\" value=\"%s\"/>" % entry.headline
-                print "<input type=\"hidden\" name=\"commentnum\" id=\"commentnum\" value=\"%s\"/>" % (numofcomment+1)
-                print "<p><input type=\"text\" name=\"author\" id=\"author\" size=\"22\" tabindex=\"1\" />"
-                print "<label for=\"author\"><small>%s</small></label></p>" % l_name_needed
-                print "<p><input type=\"text\" name=\"email\" id=\"email\" size=\"22\" tabindex=\"2\" />"
-                print "<label for=\"email\"><small>%s</small></label></p>" % l_email_needed
-                print "<p><input type=\"text\" name=\"url\" id=\"url\" size=\"22\" tabindex=\"3\" />"
-                print "<label for=\"url\"><small>%s</small></label></p>" % l_webpage
-                print "<p><input type=\"text\" name=\"nospam\" id=\"nospam\" size=\"22\" tabindex=\"4\" />"
-                print "<label for=\"nospam\"><small>%s</small></label></p>" % l_nospam_question
+                html += "id=\"commentform\" onsubmit=\"return validate_form(this)\">\n" # form
+                html += "<input type=\"hidden\" name=\"name\" id=\"name\" value=\"%s\"/>\n" % entry.fileName[:-4]
+                html += "<input type=\"hidden\" name=\"headline\" id=\"headline\" value=\"%s\"/>\n" % entry.headline#.encode('utf-8')
+                html += "<input type=\"hidden\" name=\"commentnum\" id=\"commentnum\" value=\"%s\"/>\n" % (numofcomment+1)
+                html += "<p><input type=\"text\" name=\"author\" id=\"author\" size=\"22\" tabindex=\"1\" />\n"
+                html += "<label for=\"author\"><small>%s</small></label></p>\n" % l_name_needed
+                html += "<p><input type=\"text\" name=\"email\" id=\"email\" size=\"22\" tabindex=\"2\" />\n"
+                html += "<label for=\"email\"><small>%s</small></label></p>\n" % l_email_needed
+                html += "<p><input type=\"text\" name=\"url\" id=\"url\" size=\"22\" tabindex=\"3\" />\n"
+                html += "<label for=\"url\"><small>%s</small></label></p>\n" % l_webpage
+                html += "<p><input type=\"text\" name=\"nospam\" id=\"nospam\" size=\"22\" tabindex=\"4\" />\n"
+                html += "<label for=\"nospam\"><small>%s</small></label></p>\n" % l_nospam_question
                 timestamp = time.time()
-                print '<input type="hidden" name="timestamp" id="timestamp" value="%s" />' % timestamp
-                print '<p><input type="text" name="captcha" id="captcha" size="22" tabindex="5" />'
-                print '<img src="%s/captcha?%s" /></p>' % (baseurl, str(timestamp))
-                print "<p>%s</p>" % l_no_html
-                print "<p><textarea name=\"comment\" id=\"comment\" cols=\"40\" rows=\"7\" tabindex=\"6\"></textarea></p>"
-                print "<p><input name=\"submit\" type=\"submit\" id=\"submit\" tabindex=\"7\" value=\"%s\" />" % (l_submit)
-                print "<input type=\"hidden\" name=\"comment_post_ID\" value=\"11\" />"
-                print "</p>"
-                print "<p><input type=\"checkbox\" name=\"subscribe\" id=\"subscribe\" tabindex=\"8\" value=\"subscribe\">%s</label></p>" % l_notify_comments
-                print "</form>"
-
+                html += '<input type="hidden" name="timestamp" id="timestamp" value="%s" />\n' % timestamp
+                html += '<p><input type="text" name="captcha" id="captcha" size="22" tabindex="5" />\n'
+                html += '<img src="%s/captcha?%s" /></p>\n' % (baseurl, str(timestamp))
+                html += "<p>%s</p>\n" % l_no_html
+                html += "<p><textarea name=\"comment\" id=\"comment\" cols=\"40\" rows=\"7\" tabindex=\"6\"></textarea></p>\n"
+                html += "<p><input name=\"submit\" type=\"submit\" id=\"submit\" tabindex=\"7\" value=\"%s\" />\n" % (l_submit)
+                html += "<input type=\"hidden\" name=\"comment_post_ID\" value=\"11\" />\n"
+                html += "</p>\n"
+                html += "<p><input type=\"checkbox\" name=\"subscribe\" id=\"subscribe\" tabindex=\"8\" value=\"subscribe\">%s</label></p>\n" % l_notify_comments
+                html += "</form>\n"
     if len(entries) > 1:
-        print "<div class=\"navi\">"
+        html += "<div class=\"navi\">\n"
         if page > 0:
-            print "<a href=\"%s/%s?page=%s\">%s</a>" % (
+            html += "<a href=\"%s/%s?page=%s\">%s</a>\n" % (
                 baseurl,
                 '/'.join(path),
                 page-1,
                 l_previouspage
                 )
         if len(entries) == numberofentriesperpage:
-            print "<a href=\"%s/%s?page=%s\">%s</a>" % (
+            html += "<a href=\"%s/%s?page=%s\">%s</a>\n" % (
                 baseurl,
                 '/'.join(path),
                 page+1,
                 l_nextpage
                 )
-        print "</div>"
-    print "</div>" # content2
+        html += "</div>\n"
+    html += "</div>\n" # content2
 
     # sidebar
-    print "<div id=\"sidebar\">"
-    print "<a href=\"%s/feed\">RSS <img alt=\"RSS Feed Icon\" src=\"%s\" style=\"vertical-align:top; border:none;\"/></a>" % \
+    html += "<div id=\"sidebar\">\n"
+    html += "<a href=\"%s/feed\">RSS <img alt=\"RSS Feed Icon\" src=\"%s\" style=\"vertical-align:top; border:none;\"/></a>\n" % \
         (baseurl, feedicon)
+    html += renderSidebarCategories(catelist, categories) + '\n'
+    html += renderSidebarSearch() + '\n'
+    html += renderSidebarCommments() + '\n'
+    html += renderSidebarArchive(arclist) + '\n'
+    html += renderSidebarAdmin(entries) + '\n'
+    html += renderSidebarDonate()
+    html +=renderAdvert()
 
-    renderSidebarCategories(catelist, categories)
-    renderSidebarSearch()
-    renderSidebarCommments()
-    renderSidebarArchive(arclist)
-    renderSidebarAdmin(entries)
-    renderSidebarDonate()
-    #renderAdvert()
+    html += "</div>\n" # sidebar
 
-    print "</div>" # sidebar
+    html += renderHtmlFooter() + '\n'
+    if service == 'webpy':
+        web.header('Content-Type', 'text/html; charset=%s' % encoding)
+        return html
+    elif service == 'cgi':
+        print html
+    else:
+        raise 'Service is unknown'
 
-    renderHtmlFooter()
 
 def renderFeed(entries, path, categorieslist):
     rfc822time = "%a, %d %b %Y %H:%M:%S +0200"
-    print "Content-Type: text/xml; charset=%s\n" % encoding
-    print "<?xml version=\"1.0\" encoding=\"%s\"?>" % encoding
-    print "<!-- generator=\" CodePongo (Base on Kukkaisvoima version %s)\" -->" % version
-    print "<rss version=\"2.0\""
-    print "xmlns:content=\"http://purl.org/rss/1.0/modules/content/\""
-    print "xmlns:wfw=\"http://wellformedweb.org/CommentAPI/\""
-    print "xmlns:dc=\"http://purl.org/dc/elements/1.1/\""
-    print ">"
-    print "<channel>"
+    html = ''
+    html += "<!-- generator=\" CodePongo (Base on Kukkaisvoima version %s)\" -->\n" % version
+    html += "<rss version=\"2.0\"\n"
+    html += "xmlns:content=\"http://purl.org/rss/1.0/modules/content/\"\n"
+    html += "xmlns:wfw=\"http://wellformedweb.org/CommentAPI/\"\n"
+    html += "xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+    html += ">\n"
+    html += "<channel>"
     if len(path) >= 1 and path[0] in categorieslist.keys():
-        print "<title>%s: %s</title>" % (blogname, path[0])
+        html += "<title>%s: %s</title>" % (blogname, path[0])
     else:
-        print "<title>%s</title>" % blogname
-    print "<link>%s</link>" % baseurl
-    print "<description>%s</description>" % description
-    print "<pubDate>%s</pubDate>" % strftime(rfc822time, entries[0].date.timetuple())
-    print "<lastBuildDate>%s</lastBuildDate>" % strftime(rfc822time, entries[0].date.timetuple())
-    print "<generator>http://codepongo.com/blog</generator>"
-    print "<language>%s</language>" % language
+        html += "<title>%s</title>" % blogname
+    html += "<link>%s</link>" % baseurl
+    html += "<description>%s</description>" % description
+    html += "<pubDate>%s</pubDate>" % strftime(rfc822time, entries[0].date.timetuple())
+    html += "<lastBuildDate>%s</lastBuildDate>" % strftime(rfc822time, entries[0].date.timetuple())
+    html += "<generator>http://codepongo.com/blog</generator>"
+    html += "<language>%s</language>" % language
 
     # print entries
     for entry in entries:
-        print "<item>"
-        print "<title>%s</title>" % entry.headline.replace('<h1>','').replace('</h1>','')
-        print "<link>%s</link>" % entry.url
-        print "<comments>%s#comments</comments>" % entry.url
-        print "<pubDate>%s</pubDate>" % strftime(rfc822time, entry.date.timetuple())
-        print "<dc:creator>%s</dc:creator>" % entry.author
+        html += "<item>"
+        html += "<title>%s</title>" % entry.headline.replace('<h1>','').replace('</h1>','')
+        html += "<link>%s</link>" % entry.url
+        html += "<comments>%s#comments</comments>" % entry.url
+        html += "<pubDate>%s</pubDate>" % strftime(rfc822time, entry.date.timetuple())
+        html += "<dc:creator>%s</dc:creator>" % entry.author
         for cat in entry.cat:
-            print "<category>%s</category>" % cat
-        print "<guid isPermaLink=\"false\">%s/</guid>" % entry.url
-        print "<description><![CDATA[ %s [...]]]></description>" % entry.text[0]
-        print "<content:encoded><![CDATA["
+            html += "<category>%s</category>" % cat
+        html += "<guid isPermaLink=\"false\">%s/</guid>" % entry.url
+        html += "<description><![CDATA[ %s [...]]]></description>" % entry.text[0]
+        html += "<content:encoded><![CDATA["
         for line in entry.text:
-            print line,
-        print "]]></content:encoded>"
-        print "<wfw:commentRss>%s/feed/</wfw:commentRss>" % entry.url
-        print "</item>"
-    print "</channel>"
-    print "</rss>"
+             html += removeHtmlTags(line)
+        html += "]]></content:encoded>"
+        html += "<wfw:commentRss>%s/feed/</wfw:commentRss>" % entry.url
+        html += "</item>"
+    html += "</channel>"
+    html += "</rss>"
+    if service == 'webpy':
+        web.header('Content-Type', 'text/xml; charset=%s' % encoding)
+        return html
+    elif service == 'cgi':
+        html = "Content-Type: text/xml; charset=%s\n" % encoding + html
+        print html
+    else:
+        raise 'Service is unknown'
 
-#def renderResume():
-#    renderHtmlHeader("resume")
-#    print "<div id=\"content3\">"
-#    text = open(datadir+os.sep+'resume.txt').readlines()
-#    for line in text:
-#        print line
-#    print "</div>" # content3
-#    renderHtmlFooter()
-#    return
-#
-#def renderResumeCheck():
-#    renderHtmlHeader("resume")
-#    print "<div id=\"content3\">"
-#    print "<form action=\"%s/resume\" method=\"post\" id=\"deleteform\">" % (baseurl)
-#    print "<p><label for=\"password\"><small>%s</small></label>" % l_what_is_my_name
-#    print "<p><input type=\"password\" name=\"password\" id=\"password\" size=\"22\" tabindex=\"1\" />"
-#    print "<p><input name=\"submit\" type=\"submit\" id=\"submit\" tabindex=\"5\" value=\"%s\" />" % (l_submit)
-#    print "</p></form>"
-#    print "</div>" # content3
-#    renderHtmlFooter()
-#    return
-#
-#def renderWhatsMyUserAgent():
-#    renderHtmlHeader("what's my user-agent?")
-#    if os.environ.has_key('HTTP_USER_AGENT'):
-#        print '<div id="content3">'
-#        print os.environ['HTTP_USER_AGENT']
-#        print '</div>' # content3
-#    renderHtmlFooter()
-##def renderAboutMe():
-#    renderHtmlHeader('about me')
-#    print "<div id=\"content3\">"
-#    text = open(datadir+os.sep+'aboutme.txt').readlines()
-#    for line in text:
-#        print line
-#    print "</div>" # content3
-#    renderHtmlFooter()
 
 def generateShortUrlIndex(filelist):
     # Pickle the shorturl index
@@ -1426,6 +1522,8 @@ def generateShortUrlIndex(filelist):
     shortindex = open(os.path.join(indexdir,'shorturl.index'), 'wb')
     pickle.dump(shortdict, shortindex)
     shortindex.close()
+
+
 # main program starts here
 def main():
     path = ['']
@@ -1434,7 +1532,8 @@ def main():
     #"/archive" is in os.environ
     if os.environ.has_key('PATH_INFO'):
         path = os.environ['PATH_INFO'].split('/')[1:]
-        path = [p for p in path if p != '']
+        path = [p.encode('utf8') for p in path if p != '']
+
     page = 0
     admin = False
     delcomment = 0
@@ -1469,7 +1568,7 @@ def main():
                 delcomment = int(querystr[1])
             except:
                 delcomment = 0
-        #http://codepongo.com/blog?search=xxx
+        #http://codepongo.com/blog/?search=xxx
         elif len(querystr) == 2 and querystr[0] == 'search':
             search = True
             searchstring = querystr[1]
@@ -1598,7 +1697,7 @@ def main():
     if len(path) >= 1 and path[0] == "categories":
         return renderCategories(categorieslist, ent, path)
     #http://codepongo.com/blog?search=xxx
-    elif len(path) == 1 and search == True and searchstring != "":
+    elif search == True and searchstring != "":
         return renderSearch(ent.getMany(-1), unquote_plus(searchstring))
     #http://codepongo.com/blog/xxx xxx in categories
     elif len(path) >= 1 and path[0] in categorieslist.keys():
@@ -1615,65 +1714,85 @@ def main():
     #http://codepongo.com/blog/xxx/?postcomment
     elif len(path) == 1 and postcomment:
         try:
-            redirect = handleIncomingComment(cgi.FieldStorage(keep_blank_values=1))
+            if service == 'webpy':
+                redirect = handleIncomingComment(FieldStorageWrap(web.input()))
+            elif service == 'cgi':
+                redirect = handleIncomingComment(cgi.FieldStorage(keep_blank_values=1))
+            else:
+                raise 'Service is unknown'
             if redirect:
-                print redirect
-                return
+                if service == 'webpy':
+                    web.seeother(redirect)
+                    return
+                elif service == 'cgi':
+                    print redirect
+                    return
+                else:
+                    raise 'Service is unknown'
             else:
                 entries = ent.getOne(unquote_plus(path[0]))
-        except:
+        except Exception as e:
+            pass # TODO log errors, for now just fail silently
             entries = ent.getMany(page)
     #http://codepongo.com/blog/xxx?deletecomment
     elif len(path) == 1 and deletecomment:
         # check if this is incoming comment
-        fs = cgi.FieldStorage(keep_blank_values=1)
+        if service == 'cgi':
+            fs = cgi.FieldStorage(keep_blank_values=1)
+        elif service == 'webpy':
+            fs = FieldStorageWrap(web.input())
         commentnum = int(fs.getvalue('commentnum'))
         password = fs.getvalue('password')
         name = fs.getvalue('name')
         filename = "%s.txt" % name
         if commentnum and name and password == passwd and passwd != 'password':
             deleteComment(filename, commentnum)
-        print 'Location: %s/%s\n' % (baseurl, name)
+        if service == 'cgi':
+            print 'Location: %s/%s\n' % (baseurl, name)
+        elif service == 'webpy':
+            web.seeother('%s/%s' % (baseurl, name))
+            return
+        else:
+            raise 'Service is unknown'
     #http://codepongo.com/blog/xxx/?unsubscrib=0
     elif len(path) == 1 and unsubscribe and unsubscribe_id:
         name = unquote_plus(path[0])
         filename = "%s.txt" % name
         unsubscribeComments(filename, unsubscribe_id)
-        print 'Location: %s/%s#comments\n' % (baseurl, name)
+        if service == 'cgi':
+            print 'Location: %s/%s#comments\n' % (baseurl, name)
+        elif service == 'webpy':
+            web.seeother('%s/%s#comments' % (baseurl, name))
+            return
+        else:
+            raise 'Service is unknown'
+    #http://codepongo.com/blog/captcha?xxxxxxx
     elif len(path) == 1 and path[0] == 'captcha':
         captchadb = anydbm.open(os.path.join(indexdir,'captcha.db'), 'c')
         for k in captchadb.keys():
             #visit http://codepongo.com/blog/capture 
             #without query string makes the dierty data 
             if k == '':
-                captchadb.pop(k)
+                if hasattr(captchadb, 'pop'):
+                    captchadb.pop(k)
+                else:
+                    del captchadb[k]
             elif querystr[0] != '' and float(querystr[0]) - float(3600) > float(k):
-                captchadb.pop(k)
+                if hasattr(captchadb, 'pop'):
+                    captchadb.pop(k)
+                else:
+                    del captchadb[k]
+            elif querystr[0] == '' and float(time.time()) - float(3600) > float(k):
+                if hasattr(captchadb, 'pop'):
+                    captchadb.pop(k)
+                else:
+                    del captchadb[k]
+
         captchadb[querystr[0]],data = mkCaptcha()
-        captchadb.sync()
+        if hasattr(captchadb, 'sync'):
+            captchadb.sync()
         captchadb.close()
         return renderCaptcha(data)
-    elif len(path) == 1 and path[0] == 'aboutme':
-        print 'Location: http://me.codepongo.com\n'
-        return
-#        return renderAboutMe()
-    elif len(path) == 1 and path[0] == 'whatsmyuseragent':
-        print 'Location: http://app.codepongo.com/whatsmyuseragent\n'
-        return
-#        return renderWhatsMyUserAgent()
-    elif len(path) == 1 and path[0] == 'resume':
-        print 'Location: http://me.codepongo.com/resume\n'
-        return
-#        if querystr[0] == 'check':
-#            return renderResumeCheck()
-#        else:
-#            fs = cgi.FieldStorage(keep_blank_values=1)
-#            password = fs.getvalue('password')
-#            if password == resume_password:
-#                return renderResume()
-#            else:
-#                return renderResumeCheck()
-    #http://codepongo.com/blog/xxx
     elif len(path) == 1:
         try:
             entries = ent.getOne(unquote_plus(path[0]))
@@ -1684,13 +1803,61 @@ def main():
 
     #http://codepongo.com/blog/xxx/?delcomment=0
     if delcomment > 0 and len(entries) == 1:
-        renderDeleteComments(entries[0], delcomment)
+        html = renderDeleteComments(entries[0], delcomment)
+        if service == 'cgi':
+            print html
+        elif service == 'webpy':
+            return html
+        else:
+            raise 'Service is unknown'
     #http://codepongo.com/blog/feed
     #http://codepongo.com/blog/xxx/feed
     elif feed:
-        renderFeed(entries, path, categorieslist)
+        return renderFeed(entries, path, categorieslist)
     else:
-        renderHtml(entries, path, categorieslist, archivelist, admin, page)
+        return renderHtml(entries, path, categorieslist, archivelist, admin, page)
+#import mgr
+#urls = mgr.urls()
+urls = (
+        '/(.*\.css)', 'Static',
+        '/(.*\.png)', 'Static',
+        '/(.*\.js)', 'Static',
+        '/favicon.ico', 'Favicon',
+        '/(.*)', 'Main',
+        )
+
+
+class Main:
+    def handle_request(self, path):
+        os.environ.clear()
+        os.environ['PATH_INFO'] = path
+        #os.environ['PATH_INFO'] = '/blog/' + path
+        q = web.input(_method='get')
+        if len(q) != 0:
+            os.environ['QUERY_STRING'] = '%s=%s' % (q.keys()[0].encode('utf-8'), q.values()[0].encode('utf-8'))
+        return main()
+    def GET(self, path):
+        return self.handle_request(path)
+    def POST(self, path):
+        return self.handle_request(path)
+
+
+class Favicon:
+    def GET(self):
+        return ''
+
+
+class Static:
+    def GET(self, name):
+        with open(name, 'rb') as f:
+            content = f.read()
+        return content
+
+
 if __name__ == "__main__":
-    main()
+    if service == 'webpy':
+        app = web.application(urls, globals())
+        app.run()
+    else:
+        main()
 
